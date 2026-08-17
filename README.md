@@ -1,37 +1,29 @@
 # RSOC-RTT
 
-#### 介绍
-RT-Thread 暑期夏令营仓库
+RT-Thread夏令营学员笔记
 
-#### 软件架构
-软件架构说明
+## 学员笔记模板
 
+学生姓名命名文件夹 + 每日笔记 + 每日作业
 
-#### 安装教程
-
-1.  xxxx
-2.  xxxx
-3.  xxxx
-
-#### 使用说明
-
-1.  xxxx
-2.  xxxx
-3.  xxxx
-
-#### 参与贡献
-
-1.  Fork 本仓库
-2.  新建 Feat_xxx 分支
-3.  提交代码
-4.  新建 Pull Request
-
-
-#### 特技
-
-1.  使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2.  Gitee 官方博客 [blog.gitee.com](https://blog.gitee.com)
-3.  你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解 Gitee 上的优秀开源项目
-4.  [GVP](https://gitee.com/gvp) 全称是 Gitee 最有价值开源项目，是综合评定出的优秀开源项目
-5.  Gitee 官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6.  Gitee 封面人物是一档用来展示 Gitee 会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+```c
+└─202x
+    ├─第1组
+    │  └─张三
+    │	  └─笔记
+	│	  	└─内核笔记.md
+    │	  	└─驱动笔记.md
+    │	  	└─xxx.md
+    │	  	└─...
+    │	  └─作业
+	│	  	└─第1天作业.md
+    │	  	└─第2天作业.md
+    │	  	└─第3天作业.md
+    │	  	└─第4天作业.md
+    │	  	└─第5天作业.md
+    ├─第2组
+    ├─第3组
+    ├─第4组
+    ├─第5组
+    └─第6组
+```
