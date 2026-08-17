@@ -74,67 +74,19 @@ rt_kprintf("Hello SOC 2026!\n");
 - 输入 `Tab` 查看 FinSH 命令列表
 - 输入 `ps` 查看线程
 
-![串口输出 RT-Thread Logo](./figures/uart_logo.png)
+---
+
+## 三、Markdown 语法
+
+### 3.1 常用语法速查
+
+![image-20260817234608310](../../../../../../../AppData/Roaming/Typora/typora-user-images/image-20260817234608310.png)
 
 ---
 
-## 三、工程目录结构
+## 四、Git/Gitee 操作
 
-| 目录 | 内容 |
-|------|------|
-| `applications/main.c` | main 线程入口 |
-| `drivers/` | 底层驱动（适配 RT-Thread 驱动框架） |
-| `rt-thread/components/` | 组件（FinSH、文件系统、网络、libc） |
-| `rt-thread/components/drivers/` | 驱动框架三层：IO管理层 → 设备驱动框架 → 设备驱动层 |
-| `rt-thread/libcpu/` | CPU 架构相关（上下文切换汇编） |
-| `rt-thread/src/` | 内核源码（线程/调度/IPC/内存/时钟） |
-
----
-
-## 四、启动流程
-
-```
-上电 → 启动汇编 reset_handler → system_init → entry/$Sub$$main
-→ rtthread_startup() → 关全局中断 → rt_hw_board_init()
-→ rt_show_version()（打印Logo）→ 调度器初始化 → 创建main线程 → 启动调度 → main()
-```
-
-### 关键函数说明
-
-- **`reset_handler`**：上电后第一条执行的汇编，初始化栈指针
-- **`rt_hw_board_init()`**：板级初始化（时钟、外设）
-- **`rt_show_version()`**：打印 RT-Thread 版本 Logo
-- **`rt_thread_create`**：创建 `main` 线程
-- **`rt_system_scheduler_start()`**：启动调度器
-
----
-
-## 五、Markdown 语法
-
-### 5.1 常用语法速查
-
-| 语法 | 写法 | 效果 |
-|------|------|------|
-| 标题 | `# 一级标题` | 大标题 |
-| 加粗 | `**粗体**` | **粗体** |
-| 行内代码 | `` `code` `` | `code` |
-| 代码块 | ` ``` ` 包裹 | 多行代码 |
-| 表格 | `|` 分隔 | 如上表 |
-| 图片 | `![描述](路径)` | 见下图 |
-| 链接 | `[文字](url)` | [链接](https://www.rt-thread.org/) |
-| 列表 | `-` 或 `1.` | 无序/有序 |
-
-### 5.2 Typora 图像设置
-
-在 Typora 中：`偏好设置 → 图像 → 复制到指定路径 ./figures`，使所有图片统一保存到 `./figures/` 目录。
-
-![Typora 图像设置](./figures/typora_image_setting.png)
-
----
-
-## 六、Git/Gitee 操作
-
-### 6.1 账户与密钥配置
+### 4.1 账户与密钥配置
 
 ```bash
 git config --global user.name "你的名字（英文）"
@@ -152,7 +104,7 @@ ssh -T git@gitee.com                    # 看到 successfully 即成功
 
 > ⚠️ **注意**：笔记截图时给公钥打码，**不要上传私钥**。
 
-### 6.2 常用命令
+### 4.2 常用命令
 
 | 命令 | 作用 |
 |------|------|
@@ -169,9 +121,19 @@ ssh -T git@gitee.com                    # 看到 successfully 即成功
 
 ---
 
-## 七、PR 提交流程
+![da39e2388c9b5e77f4e951e7f88fd5ad](E:/微信聊天存储/xwechat_files/wxid_ds3zka5of66g22_fa36/temp/RWTemp/2026-08/9e20f478899dc29eb19741386f9343c8/da39e2388c9b5e77f4e951e7f88fd5ad.png)
 
-### 7.1 完整流程
+**git配置**
+
+![ad9521e82a38e867704822a9c2d47c77](E:/微信聊天存储/xwechat_files/wxid_ds3zka5of66g22_fa36/temp/RWTemp/2026-08/9e20f478899dc29eb19741386f9343c8/ad9521e82a38e867704822a9c2d47c77.png)
+
+上面是gitee测试连接
+
+
+
+## 五、PR 提交流程
+
+### 5.1 完整流程
 
 1. 在 Gitee 网页 **Fork** 上游夏令营仓库
 2. `git clone` 自己的 Fork 到本地
@@ -183,24 +145,7 @@ ssh -T git@gitee.com                    # 看到 successfully 即成功
 8. 审查通过后合并（建议勾选"合并后删除提交分支"）
 9. 合并后切回 master → `git pull` 同步最新
 
-### 7.2 目录结构规范
-
-```
-夏令营仓库/
-├── group1/                    # 第一组
-│   ├── 示例张三/              # 示例（参考用）
-│   │   ├── notes/
-│   │   └── homework/
-│   ├── 你的名字/              # 自己建，改成自己的名字
-│   │   ├── notes/day1_learning_notes.md
-│   │   └── homework/
-│   └── ...
-├── group2/
-├── group3/
-└── group4/
-```
-
-### 7.3 冲突解决
+### 5.2 冲突解决
 
 冲突原因：Fork 时主仓库已更新，分支基于旧版本。
 
@@ -218,11 +163,10 @@ git push origin day1  # 重新 push
 ## 八、常见问题与避坑
 
 | 坑点 | 解决方案 |
-|------|----------|
+|:-----|----------|
 | Studio 找不到 SDK Manager | 重新安装或下载 4.1.1 版本源码 |
 | STLink 无法识别 | 升级固件（STLinkUpgrade）或重装驱动 |
-| 串口终端无输出 | 确认端口号 + 波特率 115200 + 板子已通电 |
-| 公钥泄露风险 | 笔记截图给公钥打码，不要上传私钥 |
+| 串口终端无输出 | 确认端口号 + 波特率 115200 + 板子已通 |
 | PR 冲突 | 先同步上游 → pull 最新 → merge → 解决冲突 → 重新 push |
 | 分支名重复 | 每次用不同名（day1、day1-v2、day2...） |
 | 直接提交到 master | 必须新建分支再提 PR，master 受保护 |
