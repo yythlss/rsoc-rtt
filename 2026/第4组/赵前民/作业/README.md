@@ -337,13 +337,13 @@ MSH_CMD_EXPORT(thread_dump_cmd, dump custom thread info);
 
 #### 7.1串口数据分析
 
-![image-20260818223455183](C:\Users\loong dragen\桌面\RTT学习\source\day02\image-20260818223455183.png)
+![image-20260818223455183](.\source\day02\image-20260818223455183.png)
 
 **可以看到当按键按下之前，led1任务和led2任务都在执行；按下后led1任务被挂起，之后就只有led2任务的输出**
 
 
 
-![image-20260818223700152](C:\Users\loong dragen\桌面\RTT学习\source\day02\image-20260818223700152.png)
+![image-20260818223700152](.\source\day02\image-20260818223700152.png)
 
 **可以看到当按键再次按下，led1任务被恢复，led1任务和led2任务都有输出**
 
@@ -355,3 +355,6 @@ MSH_CMD_EXPORT(thread_dump_cmd, dump custom thread info);
 - 每2秒打印一次线程状态
 - 按下板载按键，LED1线程挂起，红灯停止闪烁；再次按下恢复运行
 - 控制台输入 `thread_dump`，可打印系统所有线程信息与自定义运行参数
+
+
+
