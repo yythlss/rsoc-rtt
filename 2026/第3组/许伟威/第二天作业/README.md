@@ -223,30 +223,6 @@ struct rt_thread
 
 RT-Thread 线程共有五种状态：
 
-```
-                        ┌───────────────┐
-       rt_thread_init   │    初始态     │
-        (创建完成) ─────▶│  RT_THREAD_   │
-                        │    INIT       │
-                        └───────┬───────┘
-                 rt_thread_startup │
-                                   ▼
-                        ┌───────────────┐   被调度器选中    ┌───────────────┐
-                        │    就绪态     │ ───────────────▶ │    运行态     │
-                        │ RT_THREAD_    │                  │ RT_THREAD_    │
-                        │    READY      │ ◀─────────────── │   RUNNING     │
-                        └───▲───────┬───┘  更高优先级抢占/  └───────┬───────┘
-                            │       │      时间片用完              │
-              resume/超时/   │       │  suspend/delay/             │ delete/detach/
-              信号量释放     │       │  sem_take 阻塞              │ 函数返回
-                            │       ▼                             ▼
-                        ┌───┴───────────┐                  ┌───────────────┐
-                        │    挂起态     │                  │    关闭态     │
-                        │ RT_THREAD_    │                  │ RT_THREAD_    │
-                        │    SUSPEND    │                  │    CLOSE      │
-                        └───────────────┘                  └───────────────┘
-```
-
 | 状态 | 含义 |
 |------|------|
 | 初始态（INIT） | 线程已创建（分配了 TCB/栈），但未就绪 |
@@ -374,30 +350,3 @@ timer       4  suspend 0x200026c0 0x00000200    12%   0x00000009 000
 - **时间片轮转**：`th_led1` 与 `th_led2` 同优先级，时间片均为 5 tick，处于就绪态时按轮转调度公平共享 CPU。
 - **挂起/恢复**：按键触发 `rt_thread_suspend(th_led1)` 后红灯熄灭并停止计数；再次触发 `rt_thread_resume(th_led1)` 后恢复，验证了线程状态机中 `RUNNING → SUSPEND → READY` 的转换。
 - **剩余栈空间**：通过扫描栈底 `'#'` 水印计算未使用字节数，各线程剩余栈均在 80% 以上，栈配置（1024B）满足需求。
-
-### 2.4 实验截图
-
-| 内容 | 截图 |
-|------|------|
-| 串口启动 Logo 与线程打印 | ![串口输出](./figures/day2_uart_output.png) |
-| FinSH `thread_dump` 命令 | ![thread_dump](./figures/day2_thread_dump.png) |
-| FinSH `ps` 线程列表 | ![ps](./figures/day2_ps.png) |
-| 板卡运行照片（LED 点亮） | ![板卡照片](./figures/day2_board.jpg) |
-
-> ⚠️ 截图文件需放入 `figures/` 目录，烧录验证后替换上面的占位图。
-
----
-
-## Part 3：Gitee PR 提交规范
-
-（提交步骤见 Day 1 笔记，分支命名 `day2-xuweiwei`，PR 标题 `[作业提交] 内核与多线程培训 - 许伟威`。）
-
-```bash
-git checkout master
-git pull
-git checkout -b day2-xuweiwei
-# 放入 README.md + thread_study.c（位于 2026/第3组/许伟威/第二天作业/）
-git add .
-git commit -m "docs: day2 kernel and multithread training"
-git push origin day2-xuweiwei
-```
