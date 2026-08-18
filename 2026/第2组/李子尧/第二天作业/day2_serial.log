@@ -1,0 +1,167 @@
+=== serial COM7 115200 after verified flash ===
+[D/main] Hello RT-Thread!
+[th_led1] tick=136432, count=270, LED_R toggled
+[th_led2] tick=136625, count=195, LED_B toggled
+[th_led1] tick[th_led2] tick=140849, count=201, LED_B toggled
+[th_led1] tick=140968, count=279, LED_R toggled
+[monitor/th_led1] state=suspend, priority=16, stack_free=776/1024 bytes
+[monitor/th_led2] state=suspend, priority=16, stack_free=776/1024 bytes
+[D/main] Hello RT-Thread!
+[th_led1] tick=141472, count=280, LED_R toggled
+[th_led2] tick=141553, count=202, LED_B toggled
+[th_led1] tick=141976, count=281, LED_R toggled
+[th_led2] tick=142257, count=203, LED_B toggled
+[D/main] Hello RT-Thread!
+[th_led1] tick=142480, count=282, LED_R toggled
+[th_led2] tick=142961, count=204, LED_B toggled
+[th_led1] tick=142984, count=283, LED_R toggled
+[monitor/th_led1] state=suspend, priority=16, stack_free=776/1024 bytes
+[monitor/th_led2] state=suspend, priority=16, stack_free=776/1024 bytes
+[D/main] Hello RT-Thread!
+[th_led1] tick=143488, count=284, LED_R toggled
+[th_led2] tick=143665, count=205, LED_B toggled
+thread_dump
+Day2 thread study status:
+[th_led1] state=suspend, priority=16, stack_free=776/1024 bytes
+[th_led1] manual_suspend=no
+[th_led2] state=suspend, priority=16, stack_free=776/1024 bytes
+[th_monitor] state=suspend, priority=10, stack_free=724/1024 bytes
+msh >
+msh >[th_led1] tick=143992, count=285, LED_R toggled
+[th_led2] tick=144369, count=206, LED_B toggled
+[D/main] Hello RT-Thread!
+[th_led1] tick=144496, count=286, LED_R toggled
+[th_led1] tick=145000, count=287, LED_R toggled
+[th_led2] tick=145073, count=207, LED_B toggled
+[monitor/th_led1] state=suspend, priority=16, stack_free=776/1024 bytes
+[monitor/th_led2] state=suspend, priority=16, stack_free=776/1024 bytes
+[D/main] Hello RT-Thread!
+[th_led1] tick=145504, count=288, LED_R toggled
+[th_led2] tick=145777, count=208, LED_B toggled
+[th_led1] tick=146008, count=289, LED_R toggled
+[D/main] Hello RT-Thread!
+[th_led2] tick=146481, count=209, LED_B toggled
+[th_led1] tick=146512, count=290, LED_R toggled
+[th_led1] tick=147016, count=291, LED_R toggled
+[monitor/th_led1] state=suspend, priority=16, stack_free=776/1024 bytes
+[monitor/th_led2] state=ready, priority=16, stack_free=776/1024 bytes
+[th_led2] tick=147193, count=210, LED_B toggled
+[D/main] Hello RT-Thread!
+[th_led1] tick=147520, count=292, LED_R toggled
+[th_led2] tick=147897, count=211, LED_B toggled
+[th_led1] tick=148024, count=293, LED_R toggled
+[D/main] Hello RT-Thread!
+[th_led1] tick=148528, count=294, LED_R toggled
+[th_led2] tick=148601, count=212, LED_B toggled
+[th_led1] tick=149032, count=295, LED_R toggled
+[monitor/th_led1] state=suspend, priority=16, stack_free=776/1024 bytes
+[monitor/th_led2] state=suspend, priority=16, stack_free=776/1024 bytes
+[th_led2] tick=149305, count=213, LED_B toggled
+[D/main] Hello RT-Thread!
+[th_led1] tick=149536, count=296, LED_R toggled
+[th_led2] tick=150009, count=214, LED_B toggled
+[th_led1] tick=150040, count=297, LED_R toggled
+[D/main] Hello RT-Thread!
+[th_led1] tick=150544, count=298, LED_R toggled
+[th_led2] tick=150713, count=215, LED_B toggled
+[th_led1] tick=151048, count=299, LED_R toggled
+[monitor/th_led1] state=suspend, priority=16, stack_free=776/1024 bytes
+[monitor/th_led2] state=suspend, priority=16, stack_free=776/1024 bytes
+[th_led2] tick=151417, count=216, LED_B toggled
+[D/main] Hello RT-Thread!
+[th_led1] tick=151552, count=300, LED_R toggled
+[th_led1] tick=152056, count=301, LED_R toggled
+[th_led2] tick=152121, count=217, LED_B toggled
+[D/main] Hello RT-Thread!
+[th_led1] tick=152560, count=302, LED_R toggled
+[th_led2] tick=152825, count=218, LED_B toggled
+[th_led1] tick=153064, count=303, LED_R toggled
+[monitor/th_led1] state=suspend, priority=16, stack_free=776/1024 bytes
+[monitor/th_led2] state=suspend, priority=16, stack_free=776/1024 bytes
+[D/main] Hello RT-Thread!
+[th_led2] tick=153529, count=219, LED_B toggled
+[th_led1] tick=153568, count=304, LED_R toggled
+[th_led1] tick=154072, count=305, LED_R toggled
+[th_led2] tick=154233, count=220, LED_B toggled
+[D/main] Hello RT-Thread!
+[th_led1] tick=154576, count=306, LED_R toggled
+[th_led2] tick=154937, count=221, LED_B toggled
+[th_led1] tick=155080, count=307, LED_R toggled
+[monitor/th_led1] state=suspend, priority=16, stack_free=776/1024 bytes
+[monitor/th_led2] state=suspend, priority=16, stack_free=776/1024 bytes
+[D/main] Hello RT-Thread!
+[th_led1] tick=155584, count=308, LED_R toggled
+[th_led2] tick=155641, count=222, LED_B toggled
+list_thread
+thread   pri  status      sp     stack size max used left tick  error
+-------- ---  ------- ---------- ----------  ------  ---------- ---
+th_monit  10  suspend 0x000000b8 0x00000400    29%   0x00000003 OK
+th_led2   16  suspend 0x000000b0 0x00000400    24%   0x00000004 OK
+th_led1   16  suspend 0x000000b0 0x00000400    24%   0x00000003 OK
+tshell    20  running 0x00000270 0x00001000    15%   0x00000007 OK
+tidle0    31  ready   0x00000078 0x00000100    56%   0x00000019 OK
+timer      4  suspend 0x00000080 0x00000200    25%   0x00000009 OK
+main      10  suspend 0x000000b4 0x00000800    14%   0x00000005 OK
+msh >
+msh >[th_led1] tick=156088, count=309, LED_R toggled
+[th_led2] tick=156345, count=223, LED_B toggled
+[D/main] Hello RT-Thread!
+[th_led1] tick=156592, count=310, LED_R toggled
+[th_led2] tick=157049, count=224, LED_B toggled
+[th_led1] tick=157096, count=311, LED_R toggled
+[monitor/th_led1] state=suspend, priority=16, stack_free=776/1024 bytes
+[monitor/th_led2] state=suspend, priority=16, stack_free=776/1024 bytes
+[D/main] Hello RT-Thread!
+[th_led1] tick=157600, count=312, LED_R toggled
+[th_led2] tick=157753, count=225, LED_B toggled
+[th_led1] tick=158104, count=313, LED_R toggled
+[th_led2] tick=158457, count=226, LED_B toggled
+[D/main] Hello RT-Thread!
+[th_led1] tick=158608, count=314, LED_R toggled
+[th_led1] tick=159112, count=315, LED_R toggled
+[th_led2] tick=159161, count=227, LED_B toggled
+[monitor/th_led1] state=suspend, priority=16, stack_free=776/1024 bytes
+[monitor/th_led2] state=suspend, priority=16, stack_free=776/1024 bytes
+[D/main] Hello RT-Thread!
+[th_led1] tick=159616, count=316, LED_R toggled
+[monitor] KEY0 pressed: request th_led1 suspend
+[monitor/th_led1] state=suspend, priority=16, stack_free=776/1024 bytes
+[monitor] th_led1 manual_suspend=no
+[th_led2] tick=159865, count=228, LED_B toggled
+[th_led1] manual suspend entered
+[monitor] KEY0 pressed: resume th_led1, result=0
+[monitor/th_led1] state=ready, priority=16, stack_free=776/1024 bytes
+[monitor] th_led1 manual_suspend=yes
+[th_led1] resumed by monitor
+[th_led1] tick=160425, count=317, LED_R toggled
+[D/main] Hello RT-Thread!
+[th_led2] tick=160569, count=229, LED_B toggled
+[th_led1] tick=160929, count=318, LED_R toggled
+[th_led2] tick=161273, count=230, LED_B toggled
+[monitor/th_led1] state=suspend, priority=16, stack_free=776/1024 bytes
+[monitor/th_led2] state=suspend, priority=16, stack_free=776/1024 bytes
+[th_led1] tick=161433, count=319, LED_R toggled
+[D/main] Hello RT-Thread!
+[th_led1] tick=161937, count=320, LED_R toggled
+[th_led2] tick=161977, count=231, LED_B toggled
+[th_led1] tick=162441, count=321, LED_R toggled
+[D/main] Hello RT-Thread!
+[th_led2] tick=162681, count=232, LED_B toggled
+[th_led1] tick=162945, count=322, LED_R toggled
+[monitor/th_led1] state=suspend, priority=16, stack_free=776/1024 bytes
+[monitor/th_led2] state=suspend, priority=16, stack_free=776/1024 bytes
+[th_led2] tick=163385, count=233, LED_B toggled
+[th_led1] tick=163449, count=323, LED_R toggled
+[D/main] Hello RT-Thread!
+[th_led1] tick=163953, count=324, LED_R toggled
+[th_led2] tick=164089, count=234, LED_B toggled
+[th_led1] tick=164457, count=325, LED_R toggled
+[D/main] Hello RT-Thread!
+[th_led2] tick=164793, count=235, LED_B toggled
+[th_led1] tick=164961, count=326, LED_R toggled
+[monitor/th_led1] state=suspend, priority=16, stack_free=776/1024 bytes
+[monitor/th_led2] state=suspend, priority=16, stack_free=776/1024 bytes
+[th_led1] tick=165465, count=327, LED_R toggled
+[th_led2] tick=165497, count=236, LED_B toggled
+[D/main] Hello RT-Thread!
+
