@@ -164,4 +164,3 @@ msh >[th_led1] tick=156088, count=309, LED_R toggled
 [th_led1] tick=165465, count=327, LED_R toggled
 [th_led2] tick=165497, count=236, LED_B toggled
 [D/main] Hello RT-Thread!
-
