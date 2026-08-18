@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Day2 RT-Thread thread study.
  *
  * Board mapping from the Spark-1 schematic:
@@ -94,7 +94,8 @@ static void led1_entry(void *parameter)
         }
 
         rt_pin_write(DAY2_LED_R_PIN, !rt_pin_read(DAY2_LED_R_PIN));
-        LOG_I("th_led1 count=%u tick=%u", count++, rt_tick_get());
+        /* LOG_I("th_led1 count=%u tick=%u", count++, rt_tick_get()); */
+        count++;
         rt_thread_mdelay(500);
     }
 }
@@ -108,7 +109,8 @@ static void led2_entry(void *parameter)
     while (1)
     {
         rt_pin_write(DAY2_LED_B_PIN, !rt_pin_read(DAY2_LED_B_PIN));
-        LOG_I("th_led2 count=%u tick=%u", count++, rt_tick_get());
+        /* LOG_I("th_led2 count=%u tick=%u", count++, rt_tick_get()); */
+        count++;
         rt_thread_mdelay(700);
     }
 }
@@ -153,8 +155,7 @@ static void monitor_entry(void *parameter)
         if ((now - last_report) >= MONITOR_PERIOD_TICKS)
         {
             last_report = now;
-            print_thread_info("led1", led1_thread);
-            print_thread_info("led2", &led2_thread);
+            /* 保留 thread_dump 命令输出，关闭监控线程自动滚屏。 */
         }
 
         if (rt_pin_read(DAY2_KEY_PIN) == DAY2_KEY_ACTIVE)
@@ -253,7 +254,7 @@ static int thread_study_init(void)
     }
     rt_thread_startup(monitor_thread);
 
-    LOG_I("Day2 thread study initialized");
+    /* LOG_I("Day2 thread study initialized"); */
     return RT_EOK;
 }
 INIT_APP_EXPORT(thread_study_init);
