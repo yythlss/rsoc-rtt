@@ -1,0 +1,42 @@
+﻿=== 程序运行日志（COM21, 115200）===
+[D/main] Hello RT-Thread! count=776
+[monitor] th_led1 stat:2 remain_stack:852
+[monitor] th_led2 stat:2 remain_stack:852
+th_led2 count: 1548
+th_led1 count: 1545, tick: 777206
+th_led2 count: 1549
+th_led1 count: 1546, tick: 777709
+[D/main] Hello RT-Thread! count=777
+th_led2 count: 1550
+th_led1 count: 1547, tick: 778212
+th_led2 count: 1551
+th_led1 count: 1548, tick: 778715
+[D/main] Hello RT-Thread! count=778
+[monitor] th_led1 stat:2 remain_stack:852
+[monitor] th_led2 stat:2 remain_stack:852
+th_led2 count: 1552
+th_led1 count: 1549, tick: 779218
+th_led2 count: 1553
+th_led1 count: 1550, tick: 779721
+
+=== FinSH: thread_dump 命令输出 ===
+msh >thread_dump
+name         status   prio   remain_stack
+----------------------------------------
+th_led1     2       16     852
+th_led2     2       16     852
+th_monitor  2       10     836
+msh >
+
+=== FinSH: list_thread 命令输出 ===
+msh >list_thread
+thread   pri  status      sp     stack size max used left tick  error
+-------- ---  ------- ---------- ----------  ------  ---------- ---
+th_monit  10  suspend 0x000000bc 0x00000400    25%   0x00000003 OK
+th_led2   16  suspend 0x000000ac 0x00000400    22%   0x00000003 OK
+th_led1   16  suspend 0x000000ac 0x00000400    23%   0x00000003 OK
+tshell    20  running 0x000000cc 0x00001000    15%   0x00000002 OK
+tidle0    31  ready   0x00000060 0x00000100    56%   0x0000001f OK
+timer      4  suspend 0x00000080 0x00000200    25%   0x00000009 OK
+main      10  suspend 0x000000b8 0x00000800    14%   0x0000000d OK
+msh >

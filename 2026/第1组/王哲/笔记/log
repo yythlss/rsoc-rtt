@@ -1,0 +1,33 @@
+ \ | /
+- RT -     Thread Operating System
+ / | \     4.1.1 build Aug 18 2026 17:06:12
+ 2006 - 2022 Copyright by RT-Thread team
+th_led1  16  ready     1024     956
+th_led2  16  ready     1024     956
+led2 count: 1, tick: 9
+led1 count: 1, tick: 12
+msh >th_led1  16  suspend   1024     800
+th_led2  16  ready     1024     800
+led1 count: 2, tick: 2016
+led2 count: 2, tick: 2018
+th_led1  16  suspend   1024     800
+th_led2  16  suspend   1024     800
+led2 count: 3, tick: 4023
+led1 count: 3, tick: 4025
+th_led1  16  suspend   1024     800
+th_led2  16  ready     1024     800
+led1 count: 4, tick: 6030
+led2 count: 4, tick: 6032
+th_led1  16  suspend   1024     800
+th_led2  16  suspend   1024     800
+led2 count: 5, tick: 8037
+lth_led1  16  suspend   1024     780
+th_led2  16  ready     1024     800
+led2 count: 6, tick: 10044
+th_led1  16  ready     1024     780
+th_led2  16  ready     1024     800
+led2 count: 7, tick: 12051
+ed2 count: 7, tick: 12051th_led1  16  suspend   1024     780
+th_led2  16  ready     1024     800
+led2 coled1 count: 6, tick: 14059
+unt: 6, tick: 14059

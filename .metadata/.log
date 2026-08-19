@@ -1,0 +1,86 @@
+!SESSION 2026-08-18 09:06:09.288 -----------------------------------------------
+eclipse.buildId=unknown
+java.version=1.8.0_144
+java.vendor=Oracle Corporation
+BootLoader constants: OS=win32, ARCH=x86_64, WS=win32, NL=zh_cn_CN
+Command-line arguments:  -os win32 -ws win32 -arch x86_64 -clean
+
+!ENTRY org.eclipse.ui 2 0 2026-08-18 09:11:59.557
+!MESSAGE Warnings while parsing the images from the 'org.eclipse.ui.commandImages' extension point.
+!SUBENTRY 1 org.eclipse.ui 2 0 2026-08-18 09:11:59.557
+!MESSAGE Cannot bind to an undefined command: plug-in='com.genuitec.eclipse.theming.ui', id='com.genuitec.myeclipse.help.darktheme.commandid'
+
+!ENTRY org.eclipse.ui 4 4 2026-08-18 09:12:03.459
+!MESSAGE Plug-in 'org.eclipse.cdt.ui' contributed an invalid Menu Extension (Path: 'org.eclipse.jdt.ui.refactoring.menu' is invalid): org.eclipse.cdt.ui.actions.Rename
+
+!ENTRY org.eclipse.ui 4 4 2026-08-18 09:12:03.460
+!MESSAGE Plug-in 'org.eclipse.cdt.ui' contributed an invalid Menu Extension (Path: 'org.eclipse.jdt.ui.refactoring.menu' is invalid): org.eclipse.cdt.ui.actions.HideMethod
+
+!ENTRY org.eclipse.ui 4 4 2026-08-18 09:12:03.460
+!MESSAGE Plug-in 'org.eclipse.cdt.ui' contributed an invalid Menu Extension (Path: 'org.eclipse.jdt.ui.refactoring.menu' is invalid): org.eclipse.cdt.ui.actions.ToggleFunction
+
+!ENTRY org.eclipse.ui 4 4 2026-08-18 09:12:03.461
+!MESSAGE Plug-in 'org.eclipse.cdt.ui' contributed an invalid Menu Extension (Path: 'org.eclipse.jdt.ui.refactoring.menu' is invalid): org.eclipse.cdt.ui.actions.ExtractMethod
+
+!ENTRY org.eclipse.ui 4 4 2026-08-18 09:12:03.461
+!MESSAGE Plug-in 'org.eclipse.cdt.ui' contributed an invalid Menu Extension (Path: 'org.eclipse.jdt.ui.refactoring.menu' is invalid): org.eclipse.cdt.ui.actions.ExtractConstant
+
+!ENTRY org.eclipse.ui 4 4 2026-08-18 09:12:03.461
+!MESSAGE Plug-in 'org.eclipse.cdt.ui' contributed an invalid Menu Extension (Path: 'org.eclipse.jdt.ui.refactoring.menu' is invalid): org.eclipse.cdt.ui.actions.ExtractLocalVariable
+
+!ENTRY org.eclipse.ui 4 4 2026-08-18 09:12:03.462
+!MESSAGE Plug-in 'org.eclipse.cdt.ui' contributed an invalid Menu Extension (Path: 'org.eclipse.jdt.ui.refactoring.menu' is invalid): org.eclipse.cdt.ui.actions.RefactoringHistory
+
+!ENTRY org.eclipse.ui 4 4 2026-08-18 09:12:03.462
+!MESSAGE Plug-in 'org.eclipse.cdt.ui' contributed an invalid Menu Extension (Path: 'org.eclipse.jdt.ui.refactoring.menu' is invalid): org.eclipse.cdt.ui.actions.createRefactoringScript
+
+!ENTRY org.eclipse.ui 4 4 2026-08-18 09:12:03.462
+!MESSAGE Plug-in 'org.eclipse.cdt.ui' contributed an invalid Menu Extension (Path: 'org.eclipse.jdt.ui.refactoring.menu' is invalid): org.eclipse.cdt.ui.actions.applyRefactoringScript
+
+!ENTRY org.eclipse.ui 4 4 2026-08-18 09:12:03.659
+!MESSAGE Plugin 'org.eclipse.search' invalid Menu Extension (Path 'org.eclipse.search.menu' is invalid): textSearchSubMenu
+
+!ENTRY org.eclipse.ui 4 4 2026-08-18 09:12:03.660
+!MESSAGE Plug-in 'org.eclipse.search' contributed an invalid Menu Extension (Path: 'org.eclipse.search.menu' is invalid): org.eclipse.search.OpenFileSearchPage
+
+!ENTRY org.eclipse.ui 4 4 2026-08-18 09:12:03.696
+!MESSAGE Plug-in 'org.eclipse.search' contributed an invalid Menu Extension (Path: 'org.eclipse.search.menu' is invalid): org.eclipse.search.OpenSearchDialog
+
+!ENTRY org.eclipse.ui 4 4 2026-08-18 09:12:03.698
+!MESSAGE Plug-in 'org.eclipse.search' contributed an invalid Menu Extension (Path: 'org.eclipse.search.menu/textSearchSubMenu' is invalid): org.eclipse.search.TextSearchWorkingSet
+
+!ENTRY org.eclipse.ui 4 4 2026-08-18 09:12:03.698
+!MESSAGE Plug-in 'org.eclipse.search' contributed an invalid Menu Extension (Path: 'org.eclipse.search.menu/textSearchSubMenu' is invalid): org.eclipse.search.TextSearchFile
+
+!ENTRY org.eclipse.ui 4 4 2026-08-18 09:12:03.699
+!MESSAGE Plug-in 'org.eclipse.search' contributed an invalid Menu Extension (Path: 'org.eclipse.search.menu/textSearchSubMenu' is invalid): org.eclipse.search.TextSearchProject
+
+!ENTRY org.eclipse.ui 4 4 2026-08-18 09:12:03.700
+!MESSAGE Plug-in 'org.eclipse.search' contributed an invalid Menu Extension (Path: 'org.eclipse.search.menu/textSearchSubMenu' is invalid): org.eclipse.search.TextSearchWorkspace
+
+!ENTRY org.rt-thread.studio.application 4 4 2026-08-18 09:12:06.723
+!MESSAGE ------------>>>>E:\workspace\rsoc-rtt/.metadata/Temp/
+
+!ENTRY org.rt-thread.studio.application 4 4 2026-08-18 09:12:14.096
+!MESSAGE [ApplicationWorkbenchWindowAdvisor]getSystemInfo:null
+
+!ENTRY org.eclipse.launchbar.core 2 0 2026-08-18 09:12:14.735
+!MESSAGE Enablement expression is missing for descriptor type org.eclipse.cdt.debug.core.coreBuildDescriptorType
+
+!ENTRY org.eclipse.launchbar.core 2 0 2026-08-18 09:12:14.735
+!MESSAGE Enablement expression is missing for config provider for org.eclipse.cdt.debug.core.coreBuildDescriptorType
+
+!ENTRY org.eclipse.launchbar.core 2 0 2026-08-18 09:12:14.736
+!MESSAGE Enablement expression is missing for config provider for org.eclipse.cdt.debug.core.coreBuildDescriptorType
+
+!ENTRY org.rt-thread.studio.application 4 4 2026-08-18 09:12:19.066
+!MESSAGE start pkgs upgrade......
+
+!ENTRY org.eclipse.core.net 1 0 2026-08-18 09:12:19.436
+!MESSAGE System property https.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-08-18 09:12:19.437
+!MESSAGE System property https.proxyPort is set to 10808 but should not be set.
+
+!ENTRY org.rt-thread.studio.application 4 4 2026-08-18 09:12:46.976
+!MESSAGE end pkgs upgrade......
