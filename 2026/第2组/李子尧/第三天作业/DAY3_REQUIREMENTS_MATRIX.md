@@ -9,7 +9,6 @@
 | Ticket unsafe/safe comparison, 20 tickets | `applications/ticket_demo.c` | IMPLEMENTED |
 | Startup event AND plus timeout case | `applications/startup_demo.c` | IMPLEMENTED |
 | Package MQ capacity 5, two producers and sorter | `applications/package_demo.c` | IMPLEMENTED |
-| Studio clean build | Pending final build | MISSING |
-| SCons build | Pending final build | MISSING |
-| ST-Link flash and serial regression | Pending hardware run | MISSING |
-
+| Studio clean build | Headless Studio Clean Build invoked; final source image also linked by SCons | BUILD_PASS |
+| SCons build | `scons -Q -j1` linked `rt-thread.elf` | BUILD_PASS |
+| ST-Link flash and serial regression | SWD Program/Verify/Reset and COM7 four-command serial run completed | HW_PASS |
