@@ -1,0 +1,18 @@
+\ | /
+- RT -
+ \ | /
+- RT -     Thread Operating System
+ / | \     5.2.2 build Aug 20 2026 00:36:06
+ 2006 - 2024 Copyright by RT-Thread team
+msh >package_demo
+msh >message received: id=1000, region=3, weight=44
+message received: id=1001, region=3, weight=30
+message received: id=1002, region=1, weight=9
+message received: id=1003, region=2, weight=57
+message received: id=1004, region=3, weight=20
+message received: id=2000, region=1, weight=6
+message received: id=2001, region=1, weight=94
+message received: id=2002, region=1, weight=67
+message received: id=2003, region=3, weight=33
+message received: id=2004, region=2, weight=48
+All packages: total=10, east=4, south=2, north=4, weight=408 g, send_fail=5

@@ -1,0 +1,27 @@
+
+ \ | /
+- RT -     Thread Operating System
+ / | \     5.2.2 build Aug 19 2026 18:41:39
+ 2006 - 2024 Copyright by RT-Thread team
+msh >parking_demo
+msh >car4 entered, used spaces 1
+car3 entered, used spaces 2
+car2 entered, used spaces 3
+car2 left
+car1 entered, used spaces 3
+car3 left
+car0 entered, used spaces 3
+car4 left
+car1 left
+car2 entered, used spaces 2
+car0 left
+car4 entered, used spaces 2
+car3 entered, used spaces 3
+car2 left
+car1 entered, used spaces 3
+car4 left
+car3 left
+car0 entered, used spaces 2
+car1 left
+car2 entered, used spaces 2
+car4 entered, used spaces 3
