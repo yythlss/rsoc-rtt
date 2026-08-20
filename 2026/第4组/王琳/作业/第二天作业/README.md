@@ -128,8 +128,9 @@ Reset_Handler (汇编)
   | 无       | 初始状态 | 动态`rt_thread_create()`静态`rt_thread_init()` |
   | 初始状态 | 就绪状态 | `rt_thread_startup()`                                        |
   | 就绪状态 | 运行状态 | 被调度器选中执行（调度器调度）                               |
-  | 运行状态 | 挂起状态 | `rt_thread_suspend()` 及阻塞函数                          |
-  | 挂起状态 | 就绪状态 | 唤醒函数                                                  |
+  | 运行状态 | 挂起状态 | 阻塞函数                          |
+  | 挂起状态 | 就绪状态 | 唤醒函数         |
+   | 就绪状态 | 挂起状态 | `rt_thread_suspend()`      |
   | 运行状态 | 关闭状态 | `rt_thread_exit()`                                           |
   | 挂起状态 | 关闭状态 | `rt_thread_delete()` / `rt_thread_detach()`                  |
 
