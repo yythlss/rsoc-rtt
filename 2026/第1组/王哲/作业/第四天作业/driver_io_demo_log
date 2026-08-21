@@ -1,0 +1,13 @@
+ \ | /
+- RT -     Thread Operating System
+ / | \     4.1.1 build Aug 20 2026 11:15:08
+ 2006 - 2022 Copyright by RT-Thread team
+[I/dev_demo] init
+
+[I/dev_demo] open
+
+[I/dev_demo] read
+
+msh >[I/dev_demo] read
+
+[I/dev_demo] read
