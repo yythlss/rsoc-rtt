@@ -27,7 +27,7 @@ RT-Thread 采用 **“分而治之”** 的思想，将复杂系统拆分为多�
 #### 1.2 完整启动路径与调用链
 
 ##### 📷 手写启动流程图原件
-![手写STM32与RT-Thread启动流程图](./startup_flowchart.jpg)
+![手写STM32与RT-Thread启动流程图](./figures/startup_flowchart.jpg)
 
 ##### 📝 详细调用链与执行逻辑梳理
 
@@ -182,7 +182,7 @@ RT-Thread 线程具有 5 种生命周期状态：
 5. **关闭态（`RT_THREAD_CLOSE`）**：线程运行结束或被删除，进入僵尸队列等待回收。
 
 ##### 📷 线程五态转换机制图
-![RT-Thread 线程五态状态转化图](./thread_state_machine.png)
+![RT-Thread 线程五态状态转化图](./figures/thread_state_machine.png)
 
 ##### 📝 典型 API 触发状态转换关系说明
 - **创建/初始化 $\rightarrow$ 初始态**：`rt_thread_create()` / `rt_thread_init()`
@@ -305,15 +305,18 @@ th_led2: prio=16, stat=0x02
 ### 1. 提交目录结构
 ```
 2026/第1组/冷梦奇/作业/第二天作业
-├── README.md             # Part 1 理论整理 + Part 2 实验结果分析与串口日志
-└── thread_study.c        # 作业源码（含动/静态线程、自动初始化、MSH导出）
+├── figures/
+│   ├── startup_flowchart.jpg     # 手写启动流程图
+│   └── thread_state_machine.png  # 线程五态转换机制图
+├── README.md                     # Part 1 理论整理 + Part 2 实验结果分析与串口日志
+└── thread_study.c                # 作业源码（含动/静态线程、自动初始化、MSH导出）
 ```
 
 ### 2. Git 操作与 PR 提交流程
 
 ```bash
 # 1. 进入作业仓库本地路径
-cd "d:\嵌入式\rtt-study\01-rsoc-rtt"
+cd "d:\嵌入式\rtt-study\rsoc-rtt"
 
 # 2. 从当前状态基于 master 创建并切换到 day2 个人特性分支
 git checkout master
