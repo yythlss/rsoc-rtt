@@ -3,6 +3,10 @@
  * 场景：网络 / 传感器 / 存储三模块初始化完成后，主业务线程才能启动。
  * 命令：startup_demo           -> 三模块均在 3 秒内就绪（正常）
  *       startup_demo slow       -> 存储模块设为 5 秒，触发 3 秒超时，打印未就绪模块后继续等待
+ * 注：本版 RT-Thread 在动态线程 entry 返回后由调度器自动 close 线程对象，
+ *      期间对象 type 字段可能被回收，因此 mgr 不再显式 rt_thread_delete 已返回的
+ *      worker 句柄——会触发 `rt_object_get_type(...) == RT_Object_Class_Thread` 断言。
+ *      改为仅清空句柄；重复执行时通过为每个线程加 #seq 后缀避免对象名冲突。
  */
 #include <rtthread.h>
 #include <string.h>
@@ -16,9 +20,9 @@ static rt_event_t   evt = RT_NULL;
 static rt_sem_t    done_sem = RT_NULL;
 static rt_thread_t init_t[3];
 static rt_thread_t biz_t = RT_NULL;
-static rt_thread_t st_mgr = RT_NULL;
 static volatile rt_bool_t st_run = RT_FALSE;
 static volatile rt_uint32_t storage_delay = 1000;
+static rt_int32_t   st_run_seq = 0;      /* 同名对象冲突防护 */
 
 static void init_entry(void *p)
 {
@@ -48,18 +52,18 @@ static void biz_entry(void *p)
 static void st_mgr_entry(void *p)
 {
     for (int i = 0; i < 3; i++)
-        rt_sem_take(done_sem, RT_WAITING_FOREVER);
-    rt_sem_take(done_sem, RT_WAITING_FOREVER);   /* biz */
-    for (int i = 0; i < 3; i++)
-    {
-        if (init_t[i]) { rt_thread_delete(init_t[i]); init_t[i] = RT_NULL; }
-    }
-    if (biz_t) { rt_thread_delete(biz_t); biz_t = RT_NULL; }
+        rt_sem_take(done_sem, RT_WAITING_FOREVER);   /* 3 个 init_entry */
+    rt_sem_take(done_sem, RT_WAITING_FOREVER);       /* biz_entry */
+    /* 不能 rt_thread_delete 已返回的 worker 句柄（type 字段可能已被调度器置 NULL） */
+    for (int i = 0; i < 3; i++) init_t[i] = RT_NULL;
+    biz_t = RT_NULL;
+
     if (evt) { rt_event_delete(evt); evt = RT_NULL; }
     if (done_sem) { rt_sem_delete(done_sem); done_sem = RT_NULL; }
+
     st_run = RT_FALSE;
     rt_kprintf("startup demo finished\n");
-    rt_thread_delete(rt_thread_self());
+    /* mgr 函数返回后由 RT-Thread 调度器自动 close；下次 demo 通过 #seq 后缀避冲突 */
 }
 
 static int startup_demo(int argc, char **argv)
@@ -76,19 +80,30 @@ static int startup_demo(int argc, char **argv)
     memset(init_t, 0, sizeof(init_t));
     biz_t = RT_NULL;
     const char *names[3] = { "net", "sensor", "storage" };
+    ++st_run_seq;
     for (int i = 0; i < 3; i++)
     {
-        init_t[i] = rt_thread_create(names[i], init_entry, (void *)(rt_uint32_t)i, 1024, 20, 10);
+        char tname[16];
+        rt_snprintf(tname, sizeof(tname), "%s#%d", names[i], st_run_seq);
+        init_t[i] = rt_thread_create(tname, init_entry, (void *)(rt_uint32_t)i, 1024, 20, 10);
         if (init_t[i]) rt_thread_startup(init_t[i]);
         else rt_sem_release(done_sem);
     }
 
-    biz_t = rt_thread_create("biz", biz_entry, RT_NULL, 1024, 10, 10);
-    if (biz_t) rt_thread_startup(biz_t);
-    else rt_sem_release(done_sem);
+    {
+        char bname[16];
+        rt_snprintf(bname, sizeof(bname), "biz#%d", st_run_seq);
+        biz_t = rt_thread_create(bname, biz_entry, RT_NULL, 1024, 10, 10);
+        if (biz_t) rt_thread_startup(biz_t);
+        else rt_sem_release(done_sem);
+    }
 
-    st_mgr = rt_thread_create("st_mgr", st_mgr_entry, RT_NULL, 1024, 15, 10);
-    if (st_mgr) rt_thread_startup(st_mgr);
+    {
+        char mname[16];
+        rt_snprintf(mname, sizeof(mname), "st_mgr#%d", st_run_seq);
+        rt_thread_t mgr_t = rt_thread_create(mname, st_mgr_entry, RT_NULL, 1024, 15, 10);
+        if (mgr_t) rt_thread_startup(mgr_t);
+    }
     return 0;
 }
 MSH_CMD_EXPORT(startup_demo, startup check: event AND (slow = storage 5s timeout test));

@@ -3,6 +3,10 @@
  * 场景：3 个车位、5 辆车，车辆申请车位（2 秒超时），停留后释放。
  *      任意时刻进场车辆数不能超过 3。
  * 命令：parking_demo
+ * 注：本版 RT-Thread 在动态线程 entry 返回后由调度器自动 close 线程对象，
+ *      期间对象 type 字段可能被回收，因此 mgr 不再显式 rt_thread_delete 已返回的
+ *      worker 句柄——会触发 `rt_object_get_type(...) == RT_Object_Class_Thread` 断言。
+ *      改为仅清空句柄；重复执行时通过为每个线程加 #seq 后缀避免对象名冲突。
  */
 #include <rtthread.h>
 #include <string.h>
@@ -14,8 +18,8 @@
 static rt_sem_t    park_sem = RT_NULL;
 static rt_sem_t    done_sem = RT_NULL;
 static rt_thread_t car_t[CAR_NUM];
-static rt_thread_t park_mgr = RT_NULL;
 static volatile rt_bool_t park_run = RT_FALSE;
+static rt_int32_t   park_run_seq = 0;     /* 同名对象冲突防护 */
 
 static void car_entry(void *p)
 {
@@ -48,15 +52,16 @@ static void park_mgr_entry(void *p)
 {
     for (int i = 0; i < CAR_NUM; i++)
         rt_sem_take(done_sem, RT_WAITING_FOREVER);
-    for (int i = 0; i < CAR_NUM; i++)
-    {
-        if (car_t[i]) { rt_thread_delete(car_t[i]); car_t[i] = RT_NULL; }
-    }
+    /* 不能 rt_thread_delete 已返回的 worker 句柄（type 字段可能已被调度器置 NULL，
+       会触发 RT_OBJECT_GET_TYPE 断言）。仅清空句柄、清理 IPC 即可。 */
+    for (int i = 0; i < CAR_NUM; i++) car_t[i] = RT_NULL;
+
     if (park_sem) { rt_sem_delete(park_sem); park_sem = RT_NULL; }
     if (done_sem) { rt_sem_delete(done_sem); done_sem = RT_NULL; }
+
     park_run = RT_FALSE;
     rt_kprintf("parking demo finished\n");
-    rt_thread_delete(rt_thread_self());
+    /* mgr 函数返回后由 RT-Thread 调度器自动 close；下次 demo 通过 #seq 后缀建线程避冲突 */
 }
 
 static int parking_demo(int argc, char **argv)
@@ -71,14 +76,18 @@ static int parking_demo(int argc, char **argv)
     memset(car_t, 0, sizeof(car_t));
     for (int i = 0; i < CAR_NUM; i++)
     {
-        car_t[i] = rt_thread_create("car", car_entry, (void *)(rt_uint32_t)(i + 1),
+        char cname[16];
+        rt_snprintf(cname, sizeof(cname), "car#%d_%d", ++park_run_seq, i);
+        car_t[i] = rt_thread_create(cname, car_entry, (void *)(rt_uint32_t)(i + 1),
                                     1024, 20, 10);
         if (car_t[i]) rt_thread_startup(car_t[i]);
         else { rt_kprintf("car%d create failed\n", i + 1); rt_sem_release(done_sem); }
     }
 
-    park_mgr = rt_thread_create("park_mgr", park_mgr_entry, RT_NULL, 1024, 15, 10);
-    if (park_mgr) rt_thread_startup(park_mgr);
+    char mname[16];
+    rt_snprintf(mname, sizeof(mname), "park_mgr#%d", park_run_seq);
+    rt_thread_t mgr_t = rt_thread_create(mname, park_mgr_entry, RT_NULL, 1024, 15, 10);
+    if (mgr_t) rt_thread_startup(mgr_t);
     else { rt_kprintf("mgr create failed\n"); }
     return 0;
 }
