@@ -25,9 +25,16 @@ static void led1_thread_entry(void *parameter)
 
     while(1)
     {
-        /*翻转红灯*/
+        /* 检查挂起标志：若为真，则由线程自身调用 rt_thread_suspend 挂起自己 */
+        if(is_suspended)
+        {
+            rt_thread_suspend(rt_thread_self());
+            rt_schedule();
+        }
+
+        /* 翻转红灯 */
         rt_pin_write(PIN_LED_R, !rt_pin_read(PIN_LED_R));
-        rt_kprintf("[th_led1] count: %d, tick: %d\n", count++,rt_tick_get());
+        rt_kprintf("[th_led1] count: %d, tick: %d\n", count++, rt_tick_get());
         rt_thread_mdelay(500);
     }
 }
@@ -39,7 +46,7 @@ static void led2_thread_entry(void *parameter)
 
     while(1)
     {
-        /*翻转蓝灯*/
+        /* 翻转蓝灯 */
         rt_pin_write(PIN_LED_B, !rt_pin_read(PIN_LED_B));
         rt_kprintf("[th_led2] count: %d\n", count++);
         rt_thread_mdelay(500);
@@ -51,7 +58,7 @@ static void key_callback(void *args)
     static rt_tick_t last_tick = 0;
     rt_tick_t current_tick = rt_tick_get();
 
-    /*软件消抖*/
+    /* 软件消抖 */
     if((current_tick - last_tick) < rt_tick_from_millisecond(200))
     {
         return;
@@ -65,14 +72,13 @@ static void key_callback(void *args)
 
     if(is_suspended == RT_FALSE)
     {
-        rt_thread_suspend(th_led1);
         is_suspended = RT_TRUE;
         rt_kprintf("\n>>> [Key] th_led1 suspended! <<<\n\n");
     }
     else
     {
-        rt_thread_resume(th_led1);
         is_suspended = RT_FALSE;
+        rt_thread_resume(th_led1);
         rt_kprintf("\n>>> [Key] th_led1 resumed! <<<\n\n");
     }
 }
