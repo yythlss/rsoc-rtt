@@ -2,7 +2,7 @@
 
 ## RTT启动流程分析
 
-![image-20260818091729256](D:\系统设置文件\桌面\RSOC-RTT\Git_proj\fork\rsoc-rtt\2026\第1组\李文轩\笔记\figures\image-20260818091729256.png)
+![image-20260818091729256](figures/image-20260818091729256.png)
 
 RT-Thread 从启动文件到调度开始的完整初始化流程。
 
@@ -25,7 +25,7 @@ RT-Thread 从启动文件到调度开始的完整初始化流程。
 
 ## 线程控制模块定义
 
-![image-20260818093038715](D:\系统设置文件\桌面\RSOC-RTT\Git_proj\fork\rsoc-rtt\2026\第1组\李文轩\笔记\figures\image-20260818093038715.png)
+![image-20260818093038715](figures/image-20260818093038715.png)
 
 线程控制块 `struct rt_thread` 的定义：
 
@@ -45,7 +45,7 @@ struct rt_thread
 
 线程控制块的继承关系：
 
-![pdf_thread-cb-inherit](D:\系统设置文件\桌面\RSOC-RTT\Git_proj\fork\rsoc-rtt\2026\第1组\李文轩\笔记\figures\pdf_thread-cb-inherit.png)
+![pdf_thread-cb-inherit](figures/pdf_thread-cb-inherit.png)
 
 线程控制块 `struct rt_thread` **继承自基类 `rt_object`**（含 name/type/flag/list 四个成员），在基类基础上扩展了线程状态、优先级等属性。`rt_ipc_object` 同样继承自 `rt_object`，其下派生出 `rt_sem`、`rt_mutex`、`rt_event`、`rt_mb`、`rt_mq` 等 IPC 对象；`rt_thread` 与 `rt_timer`、`rt_device`、`rt_mempool` 平级。
 
@@ -73,7 +73,7 @@ rt_uint32_t user_data;           /* 用户数据 */
 
 ## 时间片
 
-![image-20260818094702649](D:\系统设置文件\桌面\RSOC-RTT\Git_proj\fork\rsoc-rtt\2026\第1组\李文轩\笔记\figures\image-20260818094702649.png)
+![image-20260818094702649](figures/image-20260818094702649.png)
 
 - 每个线程都需要配置时间片，但**时间片仅对优先级相同的就绪态线程有效**。
 - 系统对同优先级就绪线程采用**时间片轮转**调度，时间片约束线程单次运行时长，单位为 1 个系统节拍（OS Tick）。
@@ -90,7 +90,7 @@ idle线程->空闲线程
 
 0-31个线程，空闲线程（idle）排位在31
 
-![image-20260818094846996](D:\系统设置文件\桌面\RSOC-RTT\Git_proj\fork\rsoc-rtt\2026\第1组\李文轩\笔记\figures\image-20260818094846996.png)
+![image-20260818094846996](figures/image-20260818094846996.png)
 
 - **定义**：空闲线程是系统创建的最低优先级线程，状态永远为就绪态；当无其他就绪线程时调度器运行它；通常是死循环，**永远不能被挂起**。
 - **特殊用途（1）**：线程运行完毕后自动删除——执行 `rt_thread_exit()`，先将线程从就绪队列删除、状态改为关闭，再挂入 `rt_thread_defunct` 僵尸队列，**由空闲线程回收资源**。
@@ -102,7 +102,7 @@ idle线程->空闲线程
 
 有确定性
 
-![image-20260818100309517](D:\系统设置文件\桌面\RSOC-RTT\Git_proj\fork\rsoc-rtt\2026\第1组\李文轩\笔记\figures\image-20260818100309517.png)
+![image-20260818100309517](figures/image-20260818100309517.png)
 
 静态线程初始化接口。
 
@@ -135,7 +135,7 @@ rt_err_t rt_thread_init(struct rt_thread *thread,
 
 返回：`RT_EOK` 成功 / `-RT_ERROR` 失败。
 
-![pdf_thread-init-sample](D:\系统设置文件\桌面\RSOC-RTT\Git_proj\fork\rsoc-rtt\2026\第1组\李文轩\笔记\figures\pdf_thread-init-sample.png)
+![pdf_thread-init-sample](figures/pdf_thread-init-sample.png)
 
 ```c
 /* 线程栈与线程句柄由用户提供，并做对齐 */
@@ -175,7 +175,7 @@ int thread_init_sample(void)
 void *stack_start
 ```
 
-![image-20260818100514543](D:\系统设置文件\桌面\RSOC-RTT\Git_proj\fork\rsoc-rtt\2026\第1组\李文轩\笔记\figures\image-20260818100514543.png)
+![image-20260818100514543](figures/image-20260818100514543.png)
 
 动态线程创建接口：
 
@@ -194,7 +194,7 @@ rt_thread_t rt_thread_create(const char* name,
 
 ### 线程状态与转化
 
-![pdf_thread-state-transition](D:\系统设置文件\桌面\RSOC-RTT\Git_proj\fork\rsoc-rtt\2026\第1组\李文轩\笔记\figures\pdf_thread-state-transition.png)
+![pdf_thread-state-transition](figures/pdf_thread-state-transition.png)
 
 **5 种线程状态**：
 
@@ -224,7 +224,7 @@ rt_thread_t rt_thread_create(const char* name,
 
 **线程栈**：
 
-![pdf_thread-stack](D:\系统设置文件\桌面\RSOC-RTT\Git_proj\fork\rsoc-rtt\2026\第1组\李文轩\笔记\figures\pdf_thread-stack.png)
+![pdf_thread-stack](figures/pdf_thread-stack.png)
 
 - 线程有独立栈空间，切换时把上下文（寄存器等）存入栈，恢复时读回。
 - 栈也存放函数局部变量（先分配在寄存器，调用更深函数时入栈）。
@@ -237,7 +237,7 @@ rt_thread_t rt_thread_create(const char* name,
 
 ### 线程延时与挂起
 
-![image-20260818100908981](D:\系统设置文件\桌面\RSOC-RTT\Git_proj\fork\rsoc-rtt\2026\第1组\李文轩\笔记\figures\image-20260818100908981.png)
+![image-20260818100908981](figures/image-20260818100908981.png)
 
 抢占式系统中，线程不使用 CPU 时必须**让出 CPU 使用权**，让其他线程运行，可用延时/睡眠实现：
 
@@ -488,4 +488,4 @@ KeyError: 'LIBPATH':
 
 **核心认知**：SConscript 决定"编译什么"（缺 SConscript 的目录源码不参与构建）；`CPPPATH`→`-I`、`CPPDEFINES`→`-D`、`src`→编译文件列表；增量编译依赖 `.sconsign.dblite` 签名数据库。
 
-![image-20260818102718602](D:\系统设置文件\桌面\RSOC-RTT\Git_proj\fork\rsoc-rtt\2026\第1组\李文轩\笔记\figures\image-20260818102718602.png)
+![image-20260818102718602](figures/image-20260818102718602.png)
