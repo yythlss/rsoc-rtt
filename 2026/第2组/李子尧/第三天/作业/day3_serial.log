@@ -1,0 +1,159 @@
+﻿parking_demo
+msh >
+msh >[parking] car1 entered, used spaces: 1
+[parking] car2 entered, used spaces: 2
+[parking] car3 entered, used spaces: 3
+[parking] car3 left
+[parking] car4 entered, used spaces: 3
+[parking] car1 left
+[parking] car5 entered, used spaces: 3
+[parking] car2 left
+[parking] car4 left
+[parking] car5 left
+========== PARKING RESULT ==========
+ cars completed: 5/5
+ max used spaces: 3
+ capacity violation: NO
+ result: PASS
+ticket_demo
+msh >
+msh >[ticket B] sold ticket 20
+[ticket A] sold ticket 20
+[ticket B] sold ticket 19
+[ticket A] sold ticket 19
+[ticket B] sold ticket 18
+[ticket A] sold ticket 18
+[ticket B] sold ticket 17
+[ticket A] sold ticket 17
+[ticket B] sold ticket 16
+[ticket A] sold ticket 16
+[ticket B] sold ticket 15
+[ticket A] sold ticket 15
+[ticket B] sold ticket 14
+[ticket A] sold ticket 14
+[ticket B] sold ticket 13
+[ticket A] sold ticket 13
+[ticket B] sold ticket 12
+[ticket A] sold ticket 12
+[ticket B] sold ticket 11
+[ticket A] sold ticket 11
+[ticket B] sold ticket 10
+[ticket A] sold ticket 10
+[ticket B] sold ticket 9
+[ticket A] sold ticket 9
+[ticket B] sold ticket 8
+[ticket A] sold ticket 8
+[ticket B] sold ticket 7
+[ticket A] sold ticket 7
+[ticket B] sold ticket 6
+[ticket A] sold ticket 6
+[ticket B] sold ticket 5
+[ticket A] sold ticket 5
+[ticket B] sold ticket 4
+[ticket A] sold ticket 4
+[ticket B] sold ticket 3
+[ticket A] sold ticket 3
+[ticket B] sold ticket 2
+[ticket A] sold ticket 2
+[ticket B] sold ticket 1
+[ticket A] sold ticket 1
+========== TICKET UNSAFE RESULT ==========
+ sold: 40, remaining: 0, duplicates: 20, negative: NO
+ result: RACE OBSERVED
+[ticket B] sold ticket 20
+[ticket A] sold ticket 19
+[ticket B] sold ticket 18
+[ticket A] sold ticket 17
+[ticket B] sold ticket 16
+[ticket A] sold ticket 15
+[ticket B] sold ticket 14
+[ticket A] sold ticket 13
+[ticket B] sold ticket 12
+[ticket A] sold ticket 11
+[ticket B] sold ticket 10
+[ticket A] sold ticket 9
+[ticket B] sold ticket 8
+[ticket A] sold ticket 7
+[ticket B] sold ticket 6
+[ticket A] sold ticket 5
+[ticket B] sold ticket 4
+[ticket A] sold ticket 3
+[ticket B] sold ticket 2
+[ticket A] sold ticket 1
+========== TICKET SAFE RESULT ==========
+ sold: 20, remaining: 0, duplicates: 0, negative: NO
+ result: PASS
+startup_demo
+[startup] normal case
+msh >
+msh >[startup] network ready
+[startup] sensor ready
+[startup] storage ready
+[startup] all modules are ready
+[startup] business task started
+[startup] timeout case
+[startup] network ready
+[startup] sensor ready
+[startup] wait modules timeout, storage is not ready
+[startup] storage ready
+[startup] all modules are ready
+[startup] business task started
+package_demo
+[package] package 2001 -> region 2, weight: 850 g
+[package] producer2 sent 2001
+[package] producer1 sent 1001
+msh >
+msh >[package] producer1 sent 1002
+[package] producer2 sent 2002
+[package] producer1 sent 1003
+[package] producer2 sent 2003
+[package] queue full, retry package 03ec
+[package] queue full, retry package 07d4
+[package] queue full, retry package 03ec
+[package] queue full, retry package 07d4
+[package] queue full, retry package 03ec
+[package] package 1001 -> region 1, weight: 1200 g
+[package] producer2 sent 2004
+[package] queue full, retry package 03ec
+[package] queue full, retry package 07d5
+[package] queue full, retry package 03ec
+[package] queue full, retry package 07d5
+[package] queue full, retry package 03ec
+[package] queue full, retry package 07d5
+[package] queue full, retry package 03ec
+[package] queue full, retry package 07d5
+[package] package 1002 -> region 3, weight: 960 g
+[package] producer1 sent 1004
+[package] queue full,[package] queue full, retry package 07d5
+ retry package 07d5
+[package] queue full, retry pack[package] queue full, retry package 03ed
+age 03ed
+[package] queue full, retry package 03ed
+[package] queue full, retry package 07d5
+[package] queue full, retry package 07d5
+[package] queue full, retry package 03ed
+[package] package 2002 -> region 1, weight: 1300 g
+[package] producer2 sent 2005
+[package] queue full, retry package 03ed
+[package] queue full, retry package 03ed
+[package] queue full, retry package 03ed
+[package] queue full, retry package 03ed
+[package] package 1003 -> region 1, weight: 900 g
+[package] producer1 sent 1005
+[package] queue full, retry package ffffffff
+[package] queue full, retry package ffffffff
+[package] queue full, retry package ffffffff
+[package] queue full, retry package ffffffff
+[package] package 2003 -> region 3, weight: 780 g
+[package] package 2004 -> region 2, weight: 1200 g
+[package] package 1004 -> region 2, weight: 1100 g
+[package] package 2005 -> region 1, weight: 910 g
+[package] package 1005 -> region 3, weight: 1050 g
+========== PACKAGE RESULT ==========
+ total packages: 10
+ east: 4, south: 3, north: 3
+ total weight: 10250 g
+ send failed: 29
+ duplicates: 0
+ result: PASS
+
