@@ -181,43 +181,23 @@ RT-Thread 线程具有 5 种生命周期状态：
 4. **挂起态（`RT_THREAD_SUSPEND`）**：因延时、等待 IPC 资源或主动挂起而让出 CPU。
 5. **关闭态（`RT_THREAD_CLOSE`）**：线程运行结束或被删除，进入僵尸队列等待回收。
 
-```text
-                           ┌──────────────────────────┐
-                           │  初始状态 (THREAD_INIT)  │
-                           └────────────┬─────────────┘
-                                        │ rt_thread_startup()
-                                        ▼
-   ┌──────────────────────>┌──────────────────────────┐<──────────────────────┐
-   │                       │  就绪状态 (THREAD_READY) │                      │
-   │                       └────────────┬─────────────┘                      │
-   │                                    │ 调度器挑中 (最高优先级)             │
-   │                                    ▼                                    │
-   │                       ┌──────────────────────────┐                      │
-   │  时间片耗尽 /         │ 运行状态 (THREAD_RUNNING)│                      │
-   │  被更高优先级抢占     └────────────┬─────────────┘                      │
-   │                                    │                                    │
-   │                 ① 主动延时 / 等待资源 / 显式挂起                        │
-   │                   rt_thread_mdelay()                                    │
-   │                   rt_sem_take() / rt_mutex_take()                       │
-   │                   rt_mb_recv()  / rt_mq_recv()                          │
-   │                   rt_thread_suspend()                                   │
-   │                                    │                                    │
-   │                                    ▼                                    │
-   │                       ┌──────────────────────────┐                      │
-   │                       │ 挂起状态 (THREAD_SUSPEND)│                      │
-   │                       └────────────┬─────────────┘                      │
-   │                                    │                                    │
-   │                                    └─── ② 延时到期 / 资源到达 / 显式恢复─┘
-   │                                         rt_sem_release() / rt_mutex_release()
-   │                                         rt_mb_send()    / rt_mq_send()
-   │                                         rt_thread_resume()
-   │                                    │
-   │                                    ▼
-   │                       ┌──────────────────────────┐
-   └───────────────────────│  关闭状态 (THREAD_CLOSE) │
-       线程执行完毕返回 /  └──────────────────────────┘
-       rt_thread_delete() / rt_thread_detach() / rt_thread_exit()
-```
+##### 📷 线程五态转换机制图
+![RT-Thread 线程五态状态转化图](./thread_state_machine.png)
+
+##### 📝 典型 API 触发状态转换关系说明
+- **创建/初始化 $\rightarrow$ 初始态**：`rt_thread_create()` / `rt_thread_init()`
+- **初始态 $\rightarrow$ 就绪态**：`rt_thread_startup()`
+- **就绪态 $\leftrightarrow$ 运行态**：调度器调度 / 时间片轮转 / 高优先级抢占
+- **运行态 $\rightarrow$ 挂起态（阻塞）**：
+  - 延时让出：`rt_thread_delay()` / `rt_thread_mdelay()`
+  - IPC 阻塞等待：`rt_sem_take()` / `rt_mutex_take()` / `rt_event_recv()` / `rt_mb_recv()` / `rt_mq_recv()` / `rt_mp_alloc()`
+  - 显式挂起：`rt_thread_suspend()`
+- **挂起态 $\rightarrow$ 就绪态（唤醒）**：
+  - 延时到期 / IPC 资源就绪：`rt_sem_release()` / `rt_mutex_release()` / `rt_event_send()` / `rt_mb_send()` / `rt_mq_send()` / `rt_mp_release()`
+  - 显式恢复：`rt_thread_resume()`
+- **运行态 / 挂起态 $\rightarrow$ 关闭态**：
+  - 线程执行完毕自动退出：`rt_thread_exit()`
+  - 动态删除 / 静态脱离：`rt_thread_delete()` / `rt_thread_detach()`
 
 #### 3.2 调度机制剖析
 
