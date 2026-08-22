@@ -224,7 +224,19 @@ error: unknown type name 'rt_sensor_t'
 
 **原因**：`sensor_asair_aht10.c` 依赖 `RT_USING_SENSOR` 框架，但本项目未启用 sensor 框架。
 
-**解决**：见问题 5 的解决 3。
+**解决 1（scons 编译）**：修改 `packages/aht10-v2.1.0/SConscript`，只编译 `aht10.c`：
+```python
+src = ['aht10.c']  # 不编译 sensor_asair_aht10.c（需 sensor 框架）
+```
+
+**解决 2（RT-Thread Studio IDE 编译）**：直接删除文件：
+```
+删除 packages/aht10-v2.1.0/sensor_asair_aht10.c
+删除 packages/aht10-v2.1.0/sensor_asair_aht10.h
+删除 Debug/packages/aht10-v2.1.0/ 整个目录（IDE 缓存）
+```
+
+> 注意：IDE 用的是 makefile 系统（生成 Debug/subdir.mk），不是 scons，所以仅改 SConscript 不够，**必须物理删除文件**。
 
 ---
 
@@ -359,5 +371,3 @@ close(fd);
 
 - [ ] 烧录到星火号板验证
 - [ ] MQTT.fx 测试云端指令翻转 LED
-- [ ] 检查 `/flash/Data.txt` 是否持续追加
-- [ ] 论坛笔记：标题 `【RSOC26】day5-AHT10+MQTT+DFS 实战`

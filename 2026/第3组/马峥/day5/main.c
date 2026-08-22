@@ -464,3 +464,45 @@ static void msh_cat_data(int argc, char **argv)
     system("cat /flash/Data.txt");
 }
 MSH_CMD_EXPORT(msh_cat_data, cat /flash/Data.txt);
+
+/* 网络状态查询 */
+static void msh_net_status(int argc, char **argv)
+{
+    /* DHCP/网口状态 */
+    extern int system(const char *);
+    system("ifconfig");
+    rt_kprintf("\n--- WiFi ---\n");
+    system("wifi status");
+    rt_kprintf("\n--- MQTT ---\n");
+    rt_kprintf("isconnected: %d\n", g_mqtt_client.isconnected);
+    rt_kprintf("broker: %s\n", g_mqtt_client.uri);
+    rt_kprintf("started: %d\n", g_mqtt_started);
+}
+MSH_CMD_EXPORT(msh_net_status, show network & mqtt status);
+
+/* 手动发一个测试 payload */
+static void msh_mqtt_test(int argc, char **argv)
+{
+    if (!g_mqtt_client.isconnected)
+    {
+        rt_kprintf("[MQTT] not connected!\n");
+        return;
+    }
+    char payload[64];
+    if (argc < 2) rt_snprintf(payload, sizeof(payload), "hello from rtt %d", (int)rt_tick_get());
+    else rt_snprintf(payload, sizeof(payload), "%s", argv[1]);
+
+    MQTTMessage msg = {0};
+    msg.qos = QOS1;
+    msg.payload = payload;
+    msg.payloadlen = rt_strlen(payload);
+    if (MQTTPublish(&g_mqtt_client, MQTT_PUBTOPIC, &msg) == 0)
+    {
+        rt_kprintf("[MQTT] sent to %s: %s\n", MQTT_PUBTOPIC, payload);
+    }
+    else
+    {
+        rt_kprintf("[MQTT] publish failed\n");
+    }
+}
+MSH_CMD_EXPORT(msh_mqtt_test, mqtt_test [text] - manual publish to rtt/data);
