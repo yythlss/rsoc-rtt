@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="940" viewBox="0 0 1400 940">
+  <rect width="1400" height="940" fill="#10151d"/>
+  <text x="46" y="52" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="#f3f6fb">Day5 COM21 validation record</text>
+  <text x="46" y="84" font-family="Arial, sans-serif" font-size="16" fill="#9fb0c5">font/Data.txt + MQTT toggle | actual output整理 from the verified serial run</text>
+  <rect x="38" y="112" width="1324" height="780" rx="8" fill="#080b10" stroke="#38475b" stroke-width="2"/>
+  <g font-family="Consolas, monospace" font-size="20">
+    <text x="64" y="153" fill="#75d6ff">[WLAN] wifi connect success ssid:LTR</text>
+    <text x="64" y="184" fill="#75d6ff">[WLAN] Got IP address : 192.168.127.103</text>
+    <text x="64" y="215" fill="#73e69a">[MQTT] MQTT server connect success.</text>
+    <text x="64" y="246" fill="#73e69a">[MQTT] Subscribe rtt/20260821/test OK!</text>
+    <text x="64" y="293" fill="#f3f6fb">msh /&gt; mount</text>
+    <text x="64" y="324" fill="#ffd166">elm         font       /fal</text>
+    <text x="64" y="371" fill="#f3f6fb">msh /&gt; ls /fal</text>
+    <text x="64" y="402" fill="#ffd166">Data.txt            152</text>
+    <text x="64" y="449" fill="#f3f6fb">msh /&gt; cat /fal/Data.txt</text>
+    <text x="64" y="480" fill="#dce6f3">Temp: -50.00 ; Humi: 0.00 ; Count: 1</text>
+    <text x="64" y="511" fill="#dce6f3">Temp: 30.28 ; Humi: 83.54 ; Count: 2</text>
+    <text x="64" y="542" fill="#dce6f3">Temp: 30.32 ; Humi: 83.53 ; Count: 3</text>
+    <text x="64" y="573" fill="#dce6f3">Temp: 30.30 ; Humi: 83.51 ; Count: 4</text>
+    <text x="64" y="620" fill="#73e69a">toggle_publish= 0</text>
+    <text x="64" y="651" fill="#73e69a">received topic=rtt/20260821/test payload=toggle</text>
+    <text x="64" y="682" fill="#73e69a">MQTT command toggle: LED_R changed</text>
+    <text x="64" y="729" fill="#f3f6fb">msh /&gt; pin read PF12</text>
+    <text x="64" y="760" fill="#ffd166">pin[92] = off</text>
+    <text x="64" y="791" fill="#f3f6fb">msh /&gt; pin read PF12</text>
+    <text x="64" y="822" fill="#ffd166">pin[92] = on</text>
+    <text x="64" y="865" fill="#9fb0c5">Source: COM21, 115200 8-N-1; no WiFi password shown.</text>
+  </g>
+</svg>
