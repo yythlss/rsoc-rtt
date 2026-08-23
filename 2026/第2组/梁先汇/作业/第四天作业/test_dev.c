@@ -3,7 +3,7 @@
 #include "test_dev.h"
 #include <ulog.h>
 
-/* 框架层设备对象（对标 pin.c 的 _hw_pin） */
+/* 框架层设备对象 */
 static struct rt_device_test _test_dev;
 
 /* 分发函数：内核调到这里，再转手调驱动层的 ops */

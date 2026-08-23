@@ -31,7 +31,7 @@ struct rt_device_test
     const struct rt_test_ops *ops;
 };
 
-/* 框架层注册 API —— 对标 rt_device_pin_register */
+/* 框架层注册 API */
 int rt_device_test_register(const char *name,
                             const struct rt_test_ops *ops,
                             void *user_data);
