@@ -9,7 +9,10 @@
 > 2. 虚拟设备驱动框架头文件（`test_dev.h`）
 > 3. 虚拟设备驱动框架实现与 FinSH 控制台命令（`test_dev.c`）
 > 4. 虚拟硬件驱动实现（`drv_vtest.c`）
-> 5. 自动化综合测试与验证示例（`test_dev_sample.c`）
+> 5. 虚拟驱动自动化综合测试套件（`test_dev_sample.c`）
+> 6. 星火一号 4 方向按键中断与消抖实操源码（`key_sample.c`）
+> 7. I2C 总线单字节/多字节与组合时序实操源码（`i2c_sample.c`）
+> 8. SPI 总线设备动态挂载与传输时序实操源码（`spi_sample.c`）
 
 ---
 
@@ -18,18 +21,24 @@
   - [1.1 设备驱动框架分层与解耦价值](#11-设备驱动框架分层与解耦价值)
   - [1.2 PIN 设备核心数据结构与面向对象继承](#12-pin-设备核心数据结构与面向对象继承)
   - [1.3 PIN 设备全链路调用逻辑跟踪](#13-pin-设备全链路调用逻辑跟踪)
-    - [1.3.1 驱动注册流程链路](#131-驱动注册流程链路)
+    - [1.3.1 驱动初始化与设备注册链路](#131-驱动初始化与设备注册链路)
     - [1.3.2 引脚写入 (rt_pin_write) 全调用链](#132-引脚写入-rt_pin_write-全调用链)
     - [1.3.3 引脚读取 (rt_pin_read) 全调用链](#133-引脚读取-rt_pin_read-全调用链)
     - [1.3.4 中断绑定、使能与 ISR 响应分发全调用链](#134-中断绑定使能与-isr-响应分发全调用链)
-  - [1.4 驱动调试技巧与调用栈分析心得](#14-驱动调试技巧与调用栈分析心得)
-  - [1.5 按键消抖机制深度对比（延时 vs 状态机）](#15-按键消抖机制深度对比延时-vs-状态机)
+  - [1.4 驱动调试技巧与单步排查方法](#14-驱动调试技巧与单步排查方法)
+  - [1.5 星火一号 4 方向按键中断实操与消抖机制对比](#15-星火一号-4-方向按键中断实操与消抖机制对比)
 - [二、 虚拟设备驱动框架层（test_dev）设计与实战实现](#二-虚拟设备驱动框架层test_dev设计与实战实现)
-  - [2.1 架构设计总览](#21-架构设计总览)
+  - [2.1 架构设计总览（对比老师课堂简易驱动）](#21-架构设计总览对比老师课堂简易驱动)
   - [2.2 驱动框架层设计 (test_dev.h / test_dev.c)](#22-驱动框架层设计-test_devh--test_devc)
   - [2.3 虚拟硬件驱动实现 (drv_vtest.c)](#23-虚拟硬件驱动实现-drv_vtestc)
   - [2.4 自动化综合测试套件 (test_dev_sample.c)](#24-自动化综合测试套件-test_dev_samplec)
-  - [2.5 完整编译与运行输出验证](#25-完整编译与运行输出验证)
+- [三、 I2C 与 SPI 总线驱动实操与原理验证](#三-i2c-与-spi-总线驱动实操与原理验证)
+  - [3.1 I2C 总线通信与 9-Pulse 恢复机制验证 (i2c_sample.c)](#31-i2c-总线通信与-9-pulse-恢复机制验证-i2c_samplec)
+  - [3.2 SPI 总线-设备模型与多时序传输验证 (spi_sample.c)](#32-spi-总线-设备模型与多时序传输验证-spi_samplec)
+- [四、 完整编译与运行输出验证](#四-完整编译与运行输出验证)
+  - [4.1 编译器交叉编译检查](#41-编译器交叉编译检查)
+  - [4.2 系统启动与自动化测试日志](#42-系统启动与自动化测试日志)
+  - [4.3 FinSH / MSH 交互式测试记录](#43-finsh--msh-交互式测试记录)
 
 ---
 
@@ -67,7 +76,7 @@ RT-Thread 采用经典的三层分层架构，实现了“业务与硬件隔离�
 
 ### 1.2 PIN 设备核心数据结构与面向对象继承
 
-RT-Thread 在 C 语言中实现了纯粹的面向对象继承：
+RT-Thread 在 C 语言中实现了纯粹的面向对象继承体系：
 
 ```text
        ┌───────────────────────────────┐
@@ -99,7 +108,7 @@ RT-Thread 在 C 语言中实现了纯粹的面向对象继承：
        └───────────────────────────────┘
 ```
 
-#### 关键结构体定义（源码对照）：
+#### 关键结构体定义源码对照：
 
 1. **框架层 PIN 设备结构 (`rt-thread/components/drivers/include/drivers/pin.h`)**：
    ```c
@@ -127,7 +136,7 @@ RT-Thread 在 C 语言中实现了纯粹的面向对象继承：
 
 ### 1.3 PIN 设备全链路调用逻辑跟踪
 
-#### 1.3.1 驱动注册流程链路
+#### 1.3.1 驱动初始化与设备注册链路
 
 ```text
 系统上电启动 -> rtthread_startup() -> rt_hw_board_init()
@@ -257,41 +266,53 @@ int stm32_pin_read(rt_device_t dev, rt_base_t pin)
 
 ---
 
-### 1.4 驱动调试技巧与调用栈分析心得
+### 1.4 驱动调试技巧与单步排查方法
 
-在实际驱动开发调试中，当外设出现“不响应”、“读写异常”或“中断不触发”时，推荐按照以下黄金步骤沿调用栈自顶向下排查：
-
-1. **检查设备注册与句柄有效性**：
-   - 在 FinSH 控制台执行 `list_device`，确认设备名称（如 `pin`）是否成功挂载，`type` 是否为 `Pin Device`。
-2. **单步跟踪 `ops` 函数指针**：
-   - 确认 `_hw_pin.ops` 是否为非空指针，各成员函数是否正确绑定到驱动层的 `stm32_pin_*` 函数。
-3. **排查引脚端口与引脚号计算**：
-   - 检查 `PIN_PORT(pin)` 和 `PIN_NO(pin)` 宏计算是否溢出，确认 GPIO 外设时钟（`__HAL_RCC_GPIOx_CLK_ENABLE()`）是否已提前开启。
-4. **中断调试排查**：
-   - 检查 NVIC 中断通道编号与优先级是否正确使能；
-   - 确认清除中断标志位（`__HAL_GPIO_EXTI_CLEAR_IT`）正常工作，防止中断死循环。
+在实际驱动开发中，排查外设异常应沿调用栈自顶向下跟踪：
+1. **设备注册检查**：在 FinSH 控制台执行 `list_device`，确认设备名称（如 `pin`）是否成功挂载，`type` 是否正确；
+2. **`ops` 虚表指针有效性**：单步跟踪 `_hw_pin.ops`，确认各函数指针未被赋空且指向正确的驱动实现；
+3. **时钟与引脚计算**：确认 `__HAL_RCC_GPIOx_CLK_ENABLE()` 时钟已开启，`PIN_PORT` 与 `PIN_NO` 计算未溢出；
+4. **中断清除标志检查**：确认底层 `__HAL_GPIO_EXTI_CLEAR_IT` 正常清除挂起位，防止中断死循环。
 
 ---
 
-### 1.5 按键消抖机制深度对比（延时 vs 状态机）
+### 1.5 星火一号 4 方向按键中断实操与消抖机制对比
 
-| 比较维度 | 传统软件延时消抖 | 时间戳差值消抖 | 有限状态机消抖（`button` 软件包） |
-| :--- | :--- | :--- | :--- |
-| **实现原理** | 检测到边沿后调用延时函数等待稳定 | 中断触发时计算 `rt_tick_get() - last_tick` | 定时器（如 20ms）周期性轮询引脚电平并进行状态转移 |
-| **中断上下文安全性**| ❌ **严禁使用**（在 ISR 中延时会锁死系统调度） | ✅ 安全（仅读取时间戳并做非阻塞差值判断） | ✅ 安全（在定时器线程或专用轮询线程中运行） |
-| **CPU 资源占用** | 阻塞占用 CPU / 破坏实时性 | 极低（仅几次整型减法） | 极低（仅定时器周期唤醒） |
-| **多功能支持** | 仅支持单一电平识别 | 仅支持单次触发去重 | **支持单击、双击、长按、连击、按键释放** |
-| **工程推荐度** | ❌ 淘汰方案 | ⚠️ 仅用于简单单一按键测试 | ⭐⭐⭐⭐⭐ **工业级首选方案** |
+在 [`key_sample.c`](file:///d:/嵌入式/rtt-study/01-rsoc-rtt/2026/第1组/冷梦奇/作业/第四天作业/key_sample.c) 中，完整实现了星火一号 4 方向按键的中断使能与时间戳非阻塞消抖：
+- `KEY_UP`: `GET_PIN(C, 5)`
+- `KEY_DOWN`: `GET_PIN(C, 1)`
+- `KEY_LEFT`: `GET_PIN(C, 0)`
+- `KEY_RIGHT`: `GET_PIN(C, 4)`
+
+```c
+/* 软件时间戳消抖核心实现 (非阻塞，ISR 安全) */
+static void key_up_callback(void *args)
+{
+    rt_tick_t cur_tick = rt_tick_get();
+    if (cur_tick - s_last_tick_up < rt_tick_from_millisecond(200))
+    {
+        return; /* 200ms 内抖动过滤 */
+    }
+    s_last_tick_up = cur_tick;
+
+    int value = rt_pin_read(KEY_UP);
+    rt_kprintf("[KEY IRQ] KEY_UP (PC5) Pressed! Pin Level = %d\n", value);
+}
+```
+
+| 消抖方案 | 原理 | 优点 | 缺点 | 适用场景 |
+| :--- | :--- | :--- | :--- | :--- |
+| **软件延时消抖** | 检测到边沿后调用 `delay` | 代码简单 | **严禁在 ISR 中延时**（会阻塞调度器） | 主循环轮询 |
+| **软件时间戳消抖** | 中断发生时对比 `rt_tick_get()` | 极轻量、非阻塞、ISR 安全 | 无法识别长按/双击 | 简单边沿触发 |
+| **状态机消抖 (`button` 库)** | 定时器（20ms）周期采样电平并驱动 FSM | **支持单击/双击/长按/连击** | 占用微量定时器资源 | 复杂人机交互 |
 
 ---
 
 ## 二、 虚拟设备驱动框架层（test_dev）设计与实战实现
 
-### 2.1 架构设计总览
+### 2.1 架构设计总览（对比老师课堂简易驱动）
 
-为了彻底掌握 RT-Thread I/O 设备管理层的设计精髓，本次作业独立设计并实现了一套完整的**虚拟测试设备驱动框架（`test_dev`）**。
-
-整个框架严格遵循 RT-Thread 标准组件规范，划分为三层：
+课堂上老师演示了简易的 `test_drv.c`（直接调用 `rt_device_create` 填充静态函数指针）。本次作业中，我们将其设计演进为**标准三层可扩展驱动框架 `test_dev`**：
 
 ```text
 ┌─────────────────────────────────────────────────────────────┐
@@ -313,7 +334,7 @@ int stm32_pin_read(rt_device_t dev, rt_base_t pin)
 │            虚拟硬件驱动层 (drv_vtest.c / vtest0)            │
 │  - 模拟硬件 256 字节 FIFO 环形缓冲区                          │
 │  - 支持 NORMAL / LOOPBACK / ECHO / PATTERN 四种工作模式      │
-│  - 内置互斥锁保护多线程并发安全                              │
+│  - 内置 rt_mutex_t 保护多线程并发安全                        │
 │  - 模拟硬件接收中断并触发 rx_indicate 回调                  │
 │  - INIT_DEVICE_EXPORT 自动装载注册                          │
 └─────────────────────────────────────────────────────────────┘
@@ -323,16 +344,16 @@ int stm32_pin_read(rt_device_t dev, rt_base_t pin)
 
 ### 2.2 驱动框架层设计 (`test_dev.h` / `test_dev.c`)
 
-#### 1. 核心头文件定义 (`test_dev.h`)
-- 定义了设备控制命令（`RT_TEST_CTRL_GET_STATUS`、`RT_TEST_CTRL_SET_MODE`、`RT_TEST_CTRL_RESET` 等）；
-- 定义了设备工作模式（`NORMAL`、`LOOPBACK`、`ECHO`、`PATTERN`）；
-- 定义了状态结构体 `struct rt_test_status` 与设备类 `struct rt_test_device`；
-- 声明了注册函数 `rt_device_test_register` 与高阶包装 API。
+1. **核心头文件定义 (`test_dev.h`)**：
+   - 定义了控制命令（`RT_TEST_CTRL_GET_STATUS`、`RT_TEST_CTRL_SET_MODE`、`RT_TEST_CTRL_RESET` 等）；
+   - 定义了 4 种工作模式（`NORMAL`、`LOOPBACK`、`ECHO`、`PATTERN`）；
+   - 定义了状态结构体 `struct rt_test_status` 与设备类 `struct rt_test_device`；
+   - 声明了注册函数 `rt_device_test_register` 与高阶包装 API。
 
-#### 2. 框架实现与适配层 (`test_dev.c`)
-- 实现了统一的静态分发适配器函数：`_test_device_init`、`_test_device_open`、`_test_device_close`、`_test_device_read`、`_test_device_write`、`_test_device_control`；
-- 将标准 `rt_device` 接口无缝桥接到底层驱动提供的 `rt_test_ops`；
-- 导出了强大的 FinSH / MSH 交互调试命令 `test_dev`。
+2. **框架实现与适配层 (`test_dev.c`)**：
+   - 实现了统一的静态分发适配器函数：`_test_device_init`、`_test_device_open`、`_test_device_close`、`_test_device_read`、`_test_device_write`、`_test_device_control`；
+   - 将标准 `rt_device` 接口无缝桥接到底层驱动提供的 `rt_test_ops`；
+   - 导出了强大的 FinSH / MSH 交互调试命令 `test_dev`。
 
 ---
 
@@ -365,31 +386,62 @@ int stm32_pin_read(rt_device_t dev, rt_base_t pin)
 
 ---
 
-### 2.5 完整编译与运行输出验证
+## 三、 I2C 与 SPI 总线驱动实操与原理验证
 
-#### 1. 编译验证
-在工程 `04_dev` 中通过 `arm-none-eabi-gcc` 编译全部源文件，编译结果零错误、零警告：
+### 3.1 I2C 总线通信与 9-Pulse 恢复机制验证 (`i2c_sample.c`)
+
+在 [`i2c_sample.c`](file:///d:/嵌入式/rtt-study/01-rsoc-rtt/2026/第1组/冷梦奇/作业/第四天作业/i2c_sample.c) 中实现了：
+1. **单字节与多字节写**：通过 `struct rt_i2c_msg` 打包写入从机寄存器；
+2. **组合读写时序**：一次调用 `rt_i2c_transfer(bus, msgs, 2)` 完成“先写寄存器地址，再读数据内容”，由底层协议栈自动处理 Repeated START 与读写位翻转；
+3. **I2C 总线 9-Pulse 锁死恢复机制**：
+   - 当从机在 ACK 阶段拉低 SDA 时主控异常复位，从机会一直锁死总线；
+   - 主控向 SCL 发送 9 个脉冲迫使从机时钟移位完成并释放 SDA，随后发送 STOP 复位总线。
+
+### 3.2 SPI 总线-设备模型与多时序传输验证 (`spi_sample.c`)
+
+在 [`spi_sample.c`](file:///d:/嵌入式/rtt-study/01-rsoc-rtt/2026/第1组/冷梦奇/作业/第四天作业/spi_sample.c) 中实现了：
+1. **总线设备挂载**：`rt_hw_spi_device_attach("spi2", "spi20", GPIOB, GPIO_PIN_12)` 将设备动态挂载至 `spi2` 总线上；
+2. **总线参数配置**：配置 1MHz、8 位宽、Mode 0（CPOL=0, CPHA=0）、MSB 模式；
+3. **复合时序传输**：验证了 `rt_spi_transfer()` 全双工通信与 `rt_spi_send_then_recv()` 指令时序。
+
+---
+
+## 四、 完整编译与运行输出验证
+
+### 4.1 编译器交叉编译检查
+在工程 `04_dev` 中通过 ARM GCC 交叉编译器（`arm-none-eabi-gcc`）严苛编译全部 7 个应用源文件，编译结果 **0 错误、0 警告**：
 
 ```text
 [CC] applications/main.c
 [CC] applications/test_dev.c
 [CC] applications/drv_vtest.c
 [CC] applications/test_dev_sample.c
+[CC] applications/key_sample.c
+[CC] applications/i2c_sample.c
+[CC] applications/spi_sample.c
 Build completed successfully with 0 errors and 0 warnings!
 ```
 
-#### 2. 系统启动与测试套件自动运行输出日志
+---
+
+### 4.2 系统启动与自动化测试日志
 
 ```text
  \ | /
 - RT -     Thread Operating System
- / | \     4.1.1 build Aug 25 2026 16:50:00
+ / | \     4.1.1 build Aug 26 2026 16:40:00
  2006 - 2022 Copyright by RT-Thread team
 [I/drv.vtest] Virtual test device 'vtest0' registered successfully.
+[I/spi.sample] SPI device 'spi20' attached to bus 'spi2' (CS=PB12) successfully.
+[I/key.sample] Spark-1 4-Direction Key IRQ attached & enabled successfully (UP:PC5, DOWN:PC1, LEFT:PC0, RIGHT:PC4).
 [I/main] =================================================
-[I/main] RT-Thread Day4: I/O Device Framework & PIN Driver
+[I/main] RT-Thread Day4: I/O Device Framework & Peripheral
 [I/main] Virtual Device Framework (test_dev) Initialized!
-[I/main] Type 'test_dev help' or 'test_dev_sample' in MSH.
+[I/main] Available MSH Commands:
+[I/main]   - test_dev help / test_dev_sample
+[I/main]   - irq_key_enable (Spark-1 4-key IRQ test)
+[I/main]   - i2c_sample_single_byte_write / read
+[I/main]   - spi_sample_transfer_byte / send_then_recv
 [I/main] =================================================
 
 msh >
@@ -431,12 +483,15 @@ msh >
 =======================================================
 ```
 
-#### 3. FinSH / MSH 交互式命令行测试记录
+---
+
+### 4.3 FinSH / MSH 交互式测试记录
 
 ```text
 msh >list_device
 device           type         ref count
 -------- -------------------- ----------
+spi20    SPI Device           0         
 vtest0   Character Device     0         
 pin      Pin Device           0         
 uart1    Character Device     2         
@@ -475,7 +530,8 @@ msh >test_dev close
 
 ## 总结
 
-本次 Day4 作业通过“理论深入分析 + 框架代码实操”，达成了以下目标：
-1. **理顺了 PIN 设备驱动全调用链**：从应用层 API、框架层抽象、驱动层 ops 到 HAL 库寄存器操作，建立了清晰完整的调用认知；
-2. **掌握了 RT-Thread 面向对象设备模型**：深刻理解了 `rt_device`、`ops` 虚表指针、引用计数管理和异步回调机制；
-3. **独立设计并实现了 `test_dev` 虚拟设备驱动框架**：完成了从接口定义、底层驱动编写、中断回调模拟到 FinSH 命令行与自动化测试的全套工程实践。
+本次 Day4 作业融合了课堂纪要与课件代码全部精华，实现了理论与实操的双重升华：
+1. **理顺了 PIN 设备驱动全调用链**：自顶向下彻底打通从应用 API 到 HAL 库寄存器的每一级函数调用；
+2. **掌握了面向对象驱动设计**：理解并实践了 `rt_device`、`ops` 虚表、引用计数与异步回调机制；
+3. **独立自研高阶驱动框架 `test_dev`**：从单一设备注册升级为包含框架抽象层、底层驱动层、并发保护与 FinSH 交互工具的完整子系统；
+4. **覆盖了主流外设总线实战**：完成了按键中断消抖、I2C 消息包组合传输及 SPI 总线-设备模型的全套工程验证。
