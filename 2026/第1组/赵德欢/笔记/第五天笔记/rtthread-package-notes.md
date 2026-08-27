@@ -1,0 +1,252 @@
+# 软件包与组件学习笔记
+
+## 一、软件包（Software Package）
+
+软件包是**具有特定功能、用于完成特定任务的一个程序或一组程序**，通常已封装底层驱动、协议栈或通用算法，应用程序只需调用其 API 即可减少重复开发。
+
+### 1.1 温湿度传感器 AHT10（I2C 设备）
+
+#### 开发步骤
+
+1. **阅读数据手册**：确认设备地址（通常为 `0x38`）、初始化命令、测量命令和数据格式
+2. **确认硬件连接**：找到实际 I2C 总线，确认 BSP 已注册该总线设备
+3. **编写驱动**：使用 RT-Thread I2C API 完成写命令、读数据和错误处理
+4. **应用层转换**：将原始数据转换为温度、湿度单位，通过线程或 Shell 验证
+
+#### 使用软件包的优势
+
+- 无需手动编写寄存器操作代码
+- 软件包已处理时序、校准等细节
+- 通过 Kconfig 按需裁剪功能
+
+#### 验证与故障排查
+
+| 现象            | 优先检查项                                           |
+| :-------------- | :--------------------------------------------------- |
+| 找不到 I2C 总线 | Kconfig 是否开启 I2C、总线名是否与宏定义一致         |
+| 读写返回错误    | SDA/SCL 接线、上拉电阻、设备地址和供电电压           |
+| 温湿度一直为零  | 是否完成初始化和校准，测量命令后等待时间是否足够     |
+| `%f` 输出异常   | 是否启用 `rt_vsprintf_full`，或改用整数/小数拆分打印 |
+
+---
+
+## 二、MQTT 协议
+
+### 2.1 基本模型
+
+MQTT 是**轻量级发布/订阅消息协议**，适合资源受限设备、带宽有限或连接不稳定的网络环境。
+
+| 组件             | 说明                                                       |
+| :--------------- | :--------------------------------------------------------- |
+| **Client**       | 客户端（设备或应用程序），可连接/断开服务端、发布/订阅消息 |
+| **Server**       | 服务端（Broker），负责维护连接、接收发布、处理订阅和转发   |
+| **Topic Name**   | 主题名，用于对消息分层分类，如 `rsoc/sensor/temperature`   |
+| **Publish**      | 发布，将消息发送到指定主题                                 |
+| **Subscription** | 订阅，声明客户端希望接收哪些主题的消息                     |
+
+### 2.2 QoS 等级
+
+QoS 是**客户端与 Broker 之间的交付语义**，并非网络绝对可靠的保证。
+
+| 等级  | 含义                           | 典型场景                       |
+| :---- | :----------------------------- | :----------------------------- |
+| QoS 0 | 最多一次，不等待确认，可能丢失 | 高频环境数据、可丢失的状态刷新 |
+| QoS 1 | 至少一次，可能重复，需应用层去重 | 报警、控制命令和重要状态       |
+| QoS 2 | 恰好一次，交互次数更多，开销最高 | 不能重复处理且消息量较小的业务 |
+
+### 2.3 RT-Thread 上使用 MQTT（kawaii-mqtt）
+
+#### 推荐调试顺序
+
+1. 开启 RW007 或其他网络模组，确认网卡获取 IP
+2. 使用 `ifconfig`、`ping` 检查网络、网关和 DNS
+3. 启用 `kawaii-mqtt` 软件包
+4. 配置 Broker 地址 `broker.emqx.io`、端口 `1883`，用户名密码留空
+5. 设置唯一客户端 ID 和独立收发主题
+6. 验证 MQTTX 与板卡双向收发
+7. 增加断线重连、心跳超时、发布失败等日志
+
+#### 主题设计建议（避免公共 Broker 冲突）
+
+```text
+板卡发布，MQTTX 订阅：rsoc/<唯一标识>/device/up
+MQTTX 发布，板卡订阅：rsoc/<唯一标识>/device/down
+```
+
+**注意事项**：
+
+- 公共 Broker 上主题和消息对其他用户可见，不要使用 `test`、`hello` 等常见名称
+- 客户端 ID 必须唯一，否则同名客户端可能互相顶掉
+- 主题区分大小写，不要多写或漏写 `/`
+
+### 2.4 MQTTX 验证收发
+
+| 配置项       | 值               |
+| :----------- | :--------------- |
+| 协议         | `mqtt://`（TCP） |
+| Host         | `broker.emqx.io` |
+| Port         | `1883`           |
+| MQTT Version | `3.1.1`          |
+| Client ID    | 自定义唯一值     |
+
+**验证顺序**：
+
+1. MQTTX 订阅 `rsoc/<唯一标识>/device/up`
+2. 板卡发布消息，确认 MQTTX 能显示主题、QoS 和 Payload
+3. MQTTX 向 `rsoc/<唯一标识>/device/down` 发布消息
+4. 确认板卡订阅回调收到消息
+5. 断开网络重连，确认订阅自动恢复
+6. 接入传感器数据（建议使用 JSON 格式）
+
+---
+
+## 三、文件系统（DFS）
+
+### 3.1 文件系统定义
+
+DFS（Device File System）是 RT-Thread 提供的**虚拟文件系统组件**，向上层提供统一路径和文件操作接口，向下层对接 FatFS、RomFS、DevFS 等不同文件系统及块设备。
+
+### 3.2 文件系统架构
+
+```text
+根目录 /
+  ├── /fal (挂载点)
+  ├── /dev (DevFS)
+  └── ...
+```
+
+### 3.3 常见文件系统类型
+
+| 类型  | 特点                                           |
+| :---- | :--------------------------------------------- |
+| FatFS | 兼容 FAT 格式，适合 SD 卡和可读写 Flash        |
+| RomFS | 结构简单、只读，适合固件内置资源               |
+| DevFS | 将设备映射到 `/dev` 目录，支持文件接口访问设备 |
+| UFFS  | 面向 NAND Flash 的轻量级文件系统               |
+| NFS   | 通过网络共享主机文件系统，适合开发调试         |
+
+### 3.4 POSIX 接口层
+
+| 类别     | 接口                                                         |
+| :------- | :----------------------------------------------------------- |
+| 文件操作 | `open()`, `close()`, `read()`, `write()`, `lseek()`, `rename()`, `stat()`, `unlink()` |
+| 目录操作 | `mkdir()`, `opendir()`, `readdir()`, `closedir()`            |
+| 文件系统 | `mkfs()`, `mount()`, `umount()`                              |
+
+**重要原则**：
+
+- 调用 `open()` 成功后必须在所有退出路径调用 `close()`，否则可能耗尽文件描述符
+- `readdir()` 返回 `RT_NULL` 表示遍历结束，异常路径也要调用 `closedir()`
+
+### 3.5 文件系统启动流程
+
+1. **DFS 组件初始化**：初始化注册表、文件描述符表和相关锁
+2. **注册文件系统类型**：FatFS、RomFS 等注册到 DFS
+3. **格式化并挂载**：块设备第一次使用需格式化，然后挂载到路径
+
+---
+
+## 四、FAL 与 SFUD
+
+### 4.1 SFUD（Serial Flash Universal Driver）
+
+**串行 Flash 通用驱动库**，屏蔽不同 SPI NOR Flash 在 JEDEC ID、读写和擦除命令上的差异，提供统一设备访问接口（`sfud_read()`, `sfud_write()`, `sfud_erase()`）。
+
+**职责**：负责"如何和具体 Flash 芯片通信"。
+
+### 4.2 FAL（Flash Abstraction Layer）
+
+**Flash 抽象层**，管理 Flash 设备和分区，向文件系统、OTA、NVM 等上层提供统一分区访问接口。
+
+**职责**：负责"如何把一个或多个 Flash 划分成可管理的逻辑分区"。
+
+**常见特性**：
+
+- 支持静态配置分区表，可关联多个 Flash 设备
+- 分区表支持自动装载
+- 对操作系统依赖少，可运行在 Bootloader 或裸机环境
+- 提供 FinSH/MSH 测试命令
+
+### 4.3 W25Q64 设备链路
+
+```text
+SPI 控制器
+  → spi20 设备
+  → SFUD SPI_FLASH 设备（例如 W25Q64）
+  → FAL 分区
+  → BLK 块设备
+  → FatFS/elm_fat
+  → DFS 挂载点（例如 /fal）
+  → POSIX 文件 API
+```
+
+### 4.4 配置流程
+
+1. 开启 SPI Flash、文件系统和 FAL 相关外设
+2. 启用基于 W25Q64 的 FAL 分区和自动挂载
+3. 确认 FAL 分区配置已启用
+4. 检查自动加载或自动挂载选项并保存
+
+### 4.5 Shell 验证命令
+
+```text
+msh > list_device
+msh > fal probe
+msh > ls /
+```
+
+如果没有自动挂载，手动操作：
+
+```text
+msh > mkfs -t elm <blk_device>
+msh > mount <blk_device> /fal
+msh > ls /fal
+```
+
+### 4.6 POSIX 文件读写示例
+
+```c
+#include <dfs_posix.h>
+#include <fcntl.h>
+#include <rtthread.h>
+
+static const char message[] = "Hello, RT-Thread!";
+static char buffer[sizeof(message)] = {0};
+
+static void FileSystem_Test(void)
+{
+    int fd;
+    int written;
+    int size;
+
+    fd = open("/fal/FileTest.txt", O_WRONLY | O_CREAT | O_TRUNC, 0666);
+    if (fd < 0) { rt_kprintf("open for write failed\n"); return; }
+
+    written = write(fd, message, sizeof(message) - 1);
+    close(fd);
+    if (written != (int)(sizeof(message) - 1)) {
+        rt_kprintf("write failed: %d\n", written); return;
+    }
+
+    fd = open("/fal/FileTest.txt", O_RDONLY, 0);
+    if (fd < 0) { rt_kprintf("open for read failed\n"); return; }
+
+    size = read(fd, buffer, sizeof(buffer) - 1);
+    close(fd);
+    if (size < 0) { rt_kprintf("read failed: %d\n", size); return; }
+
+    buffer[size] = '\0';
+    rt_kprintf("read: %s\n", buffer);
+}
+MSH_CMD_EXPORT(FileSystem_Test, file read/write test);
+```
+
+### 4.7 文件系统故障排查
+
+| 现象           | 检查顺序                                               |
+| :------------- | :----------------------------------------------------- |
+| 找不到 W25Q64  | SPI 引脚、片选、设备 ID、SFUD 探测日志                 |
+| FAL 分区不存在 | 分区表是否编译进工程，设备名是否与 FAL 配置一致        |
+| `mount` 失败   | 分区是否已格式化、文件系统类型是否匹配、挂载点是否存在 |
+| 文件写入失败   | 分区是否只读、剩余空间是否足够、擦写对齐是否满足       |
+| 重启后文件丢失 | 是否启用自动挂载，是否在卸载或掉电前完成写入同步       |
