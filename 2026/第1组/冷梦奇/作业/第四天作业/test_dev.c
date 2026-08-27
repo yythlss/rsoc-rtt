@@ -5,282 +5,153 @@
  *
  * Change Logs:
  * Date           Author       Notes
- * 2026-08-25     Leng Mengqi  Implementation of virtual test_dev framework
+ * 2026-08-25     Leng Mengqi  Simple beginner-friendly test_dev virtual device
  */
 
 #include "test_dev.h"
 #include <string.h>
-#include <stdlib.h>
 
-#define DBG_TAG "test_dev"
-#define DBG_LVL DBG_INFO
-#include <rtdbg.h>
+#define TEST_BUF_SIZE   64
 
-/* I/O 设备管理层与底层 Ops 适配层函数 */
-static rt_err_t _test_device_init(rt_device_t dev)
+/* 1. 定义一个设备对象和一块 64 字节的虚拟内存缓冲区 */
+static struct rt_device s_test_dev;
+static char s_buffer[TEST_BUF_SIZE];
+static rt_size_t s_data_len = 0;
+
+/* 2. 实现设备的 6 个基础操作函数 (简单好懂，没有复杂算法) */
+
+/* 初始化函数：清空缓冲区 */
+static rt_err_t test_dev_init(rt_device_t dev)
 {
-    rt_test_device_t tdev = (rt_test_device_t)dev;
-    RT_ASSERT(tdev != RT_NULL);
-    if (tdev->ops && tdev->ops->init) return tdev->ops->init(tdev);
+    rt_memset(s_buffer, 0, sizeof(s_buffer));
+    s_data_len = 0;
+    rt_kprintf("[test_dev] 1. 初始化成功 (init)\n");
     return RT_EOK;
 }
 
-static rt_err_t _test_device_open(rt_device_t dev, rt_uint16_t oflag)
+/* 打开设备函数 */
+static rt_err_t test_dev_open(rt_device_t dev, rt_uint16_t oflag)
 {
-    rt_test_device_t tdev = (rt_test_device_t)dev;
-    RT_ASSERT(tdev != RT_NULL);
-    if (tdev->ops && tdev->ops->open) return tdev->ops->open(tdev, oflag);
+    rt_kprintf("[test_dev] 2. 设备已打开 (open)\n");
     return RT_EOK;
 }
 
-static rt_err_t _test_device_close(rt_device_t dev)
+/* 关闭设备函数 */
+static rt_err_t test_dev_close(rt_device_t dev)
 {
-    rt_test_device_t tdev = (rt_test_device_t)dev;
-    RT_ASSERT(tdev != RT_NULL);
-    if (tdev->ops && tdev->ops->close) return tdev->ops->close(tdev);
+    rt_kprintf("[test_dev] 5. 设备已关闭 (close)\n");
     return RT_EOK;
 }
 
-static rt_size_t _test_device_read(rt_device_t dev, rt_off_t pos, void *buffer, rt_size_t size)
+/* 读取函数：把内部缓冲区的数据拷贝给用户 */
+static rt_size_t test_dev_read(rt_device_t dev, rt_off_t pos, void *buffer, rt_size_t size)
 {
-    rt_test_device_t tdev = (rt_test_device_t)dev;
-    RT_ASSERT(tdev != RT_NULL);
-    if (tdev->ops && tdev->ops->read) return tdev->ops->read(tdev, pos, buffer, size);
-    return 0;
+    if (buffer == RT_NULL || size == 0 || s_data_len == 0)
+    {
+        return 0;
+    }
+
+    /* 实际读取大小不能超过已有数据量 */
+    rt_size_t read_bytes = (size < s_data_len) ? size : s_data_len;
+    rt_memcpy(buffer, s_buffer, read_bytes);
+
+    /* 读出后将剩余数据往前移 */
+    s_data_len -= read_bytes;
+    for (rt_size_t i = 0; i < s_data_len; i++)
+    {
+        s_buffer[i] = s_buffer[i + read_bytes];
+    }
+
+    rt_kprintf("[test_dev] 4. 读出数据 %d 字节\n", (int)read_bytes);
+    return read_bytes;
 }
 
-static rt_size_t _test_device_write(rt_device_t dev, rt_off_t pos, const void *buffer, rt_size_t size)
+/* 写入函数：把用户传进来的数据存到内部缓冲区 */
+static rt_size_t test_dev_write(rt_device_t dev, rt_off_t pos, const void *buffer, rt_size_t size)
 {
-    rt_test_device_t tdev = (rt_test_device_t)dev;
-    RT_ASSERT(tdev != RT_NULL);
-    if (tdev->ops && tdev->ops->write) return tdev->ops->write(tdev, pos, buffer, size);
-    return 0;
+    if (buffer == RT_NULL || size == 0)
+    {
+        return 0;
+    }
+
+    /* 实际写入大小不能超过缓冲区剩余容量 */
+    rt_size_t write_bytes = (size < (TEST_BUF_SIZE - s_data_len)) ? size : (TEST_BUF_SIZE - s_data_len);
+    rt_memcpy(s_buffer + s_data_len, buffer, write_bytes);
+    s_data_len += write_bytes;
+
+    rt_kprintf("[test_dev] 3. 写入数据 %d 字节\n", (int)write_bytes);
+    return write_bytes;
 }
 
-static rt_err_t _test_device_control(rt_device_t dev, int cmd, void *args)
+/* 控制函数：接收控制命令 */
+static rt_err_t test_dev_control(rt_device_t dev, int cmd, void *args)
 {
-    rt_test_device_t tdev = (rt_test_device_t)dev;
-    RT_ASSERT(tdev != RT_NULL);
-    if (tdev->ops && tdev->ops->control) return tdev->ops->control(tdev, cmd, args);
+    if (cmd == TEST_DEV_CMD_CLEAR)
+    {
+        rt_memset(s_buffer, 0, sizeof(s_buffer));
+        s_data_len = 0;
+        rt_kprintf("[test_dev] 缓冲区已清空 (control)\n");
+        return RT_EOK;
+    }
     return -RT_ENOSYS;
 }
 
-#ifdef RT_USING_DEVICE_OPS
-const static struct rt_device_ops _test_dev_ops =
+/* 3. 自动向系统注册 "test_dev" 设备 */
+int test_dev_register(void)
 {
-    _test_device_init,
-    _test_device_open,
-    _test_device_close,
-    _test_device_read,
-    _test_device_write,
-    _test_device_control
-};
-#endif
+    /* 填写设备结构体 */
+    s_test_dev.type    = RT_Device_Class_Char; /* 字符设备 */
+    s_test_dev.init    = test_dev_init;
+    s_test_dev.open    = test_dev_open;
+    s_test_dev.close   = test_dev_close;
+    s_test_dev.read    = test_dev_read;
+    s_test_dev.write   = test_dev_write;
+    s_test_dev.control = test_dev_control;
 
-rt_err_t rt_device_test_register(struct rt_test_device *dev,
-                                 const char *name,
-                                 rt_uint32_t flags,
-                                 void *user_data)
-{
-    rt_device_t device;
-
-    RT_ASSERT(dev != RT_NULL);
-    RT_ASSERT(name != RT_NULL);
-    RT_ASSERT(dev->ops != RT_NULL);
-
-    device = &(dev->parent);
-    device->type        = RT_Device_Class_Char;
-    device->rx_indicate = RT_NULL;
-    device->tx_complete = RT_NULL;
-
-#ifdef RT_USING_DEVICE_OPS
-    device->ops         = &_test_dev_ops;
-#else
-    device->init        = _test_device_init;
-    device->open        = _test_device_open;
-    device->close       = _test_device_close;
-    device->read        = _test_device_read;
-    device->write       = _test_device_write;
-    device->control     = _test_device_control;
-#endif
-
-    device->user_data   = user_data;
-    dev->user_data      = user_data;
-
-    return rt_device_register(device, name, (rt_uint16_t)flags);
+    /* 注册设备名称为 "test_dev" */
+    rt_err_t ret = rt_device_register(&s_test_dev, "test_dev", RT_DEVICE_FLAG_RDWR);
+    if (ret == RT_EOK)
+    {
+        rt_kprintf("[test_dev] 虚拟设备 test_dev 注册成功!\n");
+    }
+    return ret;
 }
+INIT_DEVICE_EXPORT(test_dev_register);
 
-/* ==================== High-Level User Friendly APIs ==================== */
-
-rt_test_device_t rt_test_dev_find(const char *name)
-{
-    return (rt_test_device_t)rt_device_find(name ? name : "test_dev");
-}
-
-rt_err_t rt_test_dev_open(rt_test_device_t dev, rt_uint16_t oflag)
-{
-    RT_ASSERT(dev != RT_NULL);
-    return rt_device_open(&(dev->parent), oflag);
-}
-
-rt_err_t rt_test_dev_close(rt_test_device_t dev)
-{
-    RT_ASSERT(dev != RT_NULL);
-    return rt_device_close(&(dev->parent));
-}
-
-rt_size_t rt_test_dev_read(rt_test_device_t dev, rt_off_t pos, void *buffer, rt_size_t size)
-{
-    RT_ASSERT(dev != RT_NULL);
-    return rt_device_read(&(dev->parent), pos, buffer, size);
-}
-
-rt_size_t rt_test_dev_write(rt_test_device_t dev, rt_off_t pos, const void *buffer, rt_size_t size)
-{
-    RT_ASSERT(dev != RT_NULL);
-    return rt_device_write(&(dev->parent), pos, buffer, size);
-}
-
-rt_err_t rt_test_dev_control(rt_test_device_t dev, int cmd, void *args)
-{
-    RT_ASSERT(dev != RT_NULL);
-    return rt_device_control(&(dev->parent), cmd, args);
-}
-
-rt_err_t rt_test_dev_set_mode(rt_test_device_t dev, rt_uint8_t mode)
-{
-    RT_ASSERT(dev != RT_NULL);
-    return rt_device_control(&(dev->parent), RT_TEST_CTRL_SET_MODE, &mode);
-}
-
-rt_err_t rt_test_dev_reset(rt_test_device_t dev)
-{
-    RT_ASSERT(dev != RT_NULL);
-    return rt_device_control(&(dev->parent), RT_TEST_CTRL_RESET, RT_NULL);
-}
-
-rt_err_t rt_test_dev_get_status(rt_test_device_t dev, struct rt_test_status *status)
-{
-    RT_ASSERT(dev != RT_NULL);
-    RT_ASSERT(status != RT_NULL);
-    return rt_device_control(&(dev->parent), RT_TEST_CTRL_GET_STATUS, status);
-}
-
-/* ==================== FinSH / MSH 命令 ==================== */
+/* 4. 简单明了的测试函数，在串口终端输入 test_dev_sample 即可执行 */
 #ifdef RT_USING_FINSH
 #include <finsh.h>
 
-static rt_test_device_t g_current_dev = RT_NULL;
-
-static void _test_dev_print_help(void)
+static void test_dev_sample(void)
 {
-    rt_kprintf("Usage:\n");
-    rt_kprintf("  test_dev probe [name]   - Open test device (default: test_dev)\n");
-    rt_kprintf("  test_dev read [len]     - Read bytes from device\n");
-    rt_kprintf("  test_dev write <str>    - Write string to device\n");
-    rt_kprintf("  test_dev mode <0|1|2|3> - Set mode (0:Normal, 1:Loopback, 2:Echo, 3:Pattern)\n");
-    rt_kprintf("  test_dev status         - Query device status\n");
-    rt_kprintf("  test_dev close          - Close current device\n");
-}
+    rt_device_t dev;
+    char write_buf[] = "hello rt-thread";
+    char read_buf[32] = {0};
 
-static void test_dev_cmd(int argc, char **argv)
-{
-    if (argc < 2)
+    rt_kprintf("\n--- 开始测试 test_dev 设备 ---\n");
+
+    /* 1. 查找设备 */
+    dev = rt_device_find("test_dev");
+    if (dev == RT_NULL)
     {
-        _test_dev_print_help();
+        rt_kprintf("错误: 找不到 test_dev 设备!\n");
         return;
     }
 
-    if (rt_strcmp(argv[1], "probe") == 0)
-    {
-        const char *name = (argc >= 3) ? argv[2] : "test_dev";
-        if (g_current_dev != RT_NULL)
-        {
-            rt_test_dev_close(g_current_dev);
-            g_current_dev = RT_NULL;
-        }
-        g_current_dev = rt_test_dev_find(name);
-        if (g_current_dev == RT_NULL)
-        {
-            rt_kprintf("Device '%s' not found!\n", name);
-            return;
-        }
-        if (rt_test_dev_open(g_current_dev, RT_DEVICE_FLAG_RDWR) == RT_EOK)
-        {
-            rt_kprintf("Probed and opened '%s' successfully.\n", name);
-        }
-    }
-    else if (rt_strcmp(argv[1], "read") == 0)
-    {
-        rt_size_t len = (argc >= 3) ? (rt_size_t)atoi(argv[2]) : 16;
-        char buf[64];
+    /* 2. 打开设备 */
+    rt_device_open(dev, RT_DEVICE_OFLAG_RDWR);
 
-        if (g_current_dev == RT_NULL)
-        {
-            g_current_dev = rt_test_dev_find("test_dev");
-            if (g_current_dev) rt_test_dev_open(g_current_dev, RT_DEVICE_FLAG_RDWR);
-        }
-        if (!g_current_dev) { rt_kprintf("No device available.\n"); return; }
+    /* 3. 写入数据 */
+    rt_device_write(dev, 0, write_buf, sizeof(write_buf));
 
-        if (len > sizeof(buf) - 1) len = sizeof(buf) - 1;
-        rt_memset(buf, 0, sizeof(buf));
-        rt_size_t read_bytes = rt_test_dev_read(g_current_dev, 0, buf, len);
-        rt_kprintf("Read %d bytes: '%s'\n", (int)read_bytes, buf);
-    }
-    else if (rt_strcmp(argv[1], "write") == 0)
-    {
-        if (argc < 3) { rt_kprintf("Usage: test_dev write <str>\n"); return; }
-        if (g_current_dev == RT_NULL)
-        {
-            g_current_dev = rt_test_dev_find("test_dev");
-            if (g_current_dev) rt_test_dev_open(g_current_dev, RT_DEVICE_FLAG_RDWR);
-        }
-        if (!g_current_dev) { rt_kprintf("No device available.\n"); return; }
+    /* 4. 读取数据 */
+    rt_device_read(dev, 0, read_buf, sizeof(read_buf));
+    rt_kprintf(">> 从设备中读出的字符串: [%s] <<\n", read_buf);
 
-        rt_size_t written = rt_test_dev_write(g_current_dev, 0, argv[2], rt_strlen(argv[2]));
-        rt_kprintf("Wrote %d bytes: \"%s\"\n", (int)written, argv[2]);
-    }
-    else if (rt_strcmp(argv[1], "mode") == 0)
-    {
-        if (argc < 3) { rt_kprintf("Usage: test_dev mode <0~3>\n"); return; }
-        if (g_current_dev == RT_NULL)
-        {
-            g_current_dev = rt_test_dev_find("test_dev");
-            if (g_current_dev) rt_test_dev_open(g_current_dev, RT_DEVICE_FLAG_RDWR);
-        }
-        rt_uint8_t mode = (rt_uint8_t)atoi(argv[2]);
-        rt_test_dev_set_mode(g_current_dev, mode);
-        rt_kprintf("Mode set to %d.\n", mode);
-    }
-    else if (rt_strcmp(argv[1], "status") == 0)
-    {
-        struct rt_test_status status;
-        if (g_current_dev == RT_NULL)
-        {
-            g_current_dev = rt_test_dev_find("test_dev");
-            if (g_current_dev) rt_test_dev_open(g_current_dev, RT_DEVICE_FLAG_RDWR);
-        }
-        if (rt_test_dev_get_status(g_current_dev, &status) == RT_EOK)
-        {
-            rt_kprintf("Device: %s | Mode: %d | Buffer: %d/%d B | TX: %u B | RX: %u B\n",
-                       g_current_dev->parent.parent.name, status.mode,
-                       status.data_len, status.buffer_size,
-                       (unsigned int)status.total_tx_bytes, (unsigned int)status.total_rx_bytes);
-        }
-    }
-    else if (rt_strcmp(argv[1], "close") == 0)
-    {
-        if (g_current_dev)
-        {
-            rt_test_dev_close(g_current_dev);
-            rt_kprintf("Device closed.\n");
-            g_current_dev = RT_NULL;
-        }
-    }
-    else
-    {
-        _test_dev_print_help();
-    }
+    /* 5. 关闭设备 */
+    rt_device_close(dev);
+
+    rt_kprintf("--- test_dev 测试成功! ---\n\n");
 }
-MSH_CMD_EXPORT_ALIAS(test_dev_cmd, test_dev, Control and test test_dev virtual device);
+MSH_CMD_EXPORT(test_dev_sample, test test_dev virtual device);
 #endif
