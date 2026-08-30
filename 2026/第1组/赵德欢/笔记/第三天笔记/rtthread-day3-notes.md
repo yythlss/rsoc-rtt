@@ -1,6 +1,6 @@
 # RT-Thread 线程间同步与通信 学习笔记
 
-> 涵盖多线程协作中为什么需要同步、进入/退出临界区的四种方式、核心三件套（信号量 / 互斥量 / 事件集）、线程间通信（邮箱 / 消息队列），以及重点速记。
+> 涵盖多线程协作中为什么需要同步、进入/退出临界区的四种方式、核心三件套（信号量 / 互斥量 / 事件集）、线程间通信（邮箱 / 消息队列）、ISR 使用限制、对象销毁，以及重点速记。
 
 ---
 
@@ -129,14 +129,45 @@
 - 内部由**环形缓冲区 + 等待链表 + 超时定时器**实现。
 - **容量由 `rt_mb_create(name, size, flag)` 的 `size` 参数指定**（即邮箱可容纳的邮件封数），并非固定 5 个；每封邮件固定为 4 字节（一个 `unsigned long`）。
 - 例：`rt_mb_create("mbox", 5, ...)` 创建 5 封容量的邮箱，也可设为 32 等任意值，看应用需要。
+- **核心 API**
+
+  ```c
+  rt_mailbox_t rt_mb_create(const char *name, rt_size_t size, rt_uint8_t flag);
+
+  rt_err_t rt_mb_send(rt_mailbox_t mb, rt_ubase_t value);          /* 发送一封邮件（value 即 4 字节数据） */
+  rt_err_t rt_mb_send_wait(rt_mailbox_t mb, rt_ubase_t value, rt_int32_t timeout); /* 满时按超时等待 */
+  rt_err_t rt_mb_recv(rt_mailbox_t mb, rt_ubase_t *value, rt_int32_t timeout);     /* 接收一封邮件 */
+  ```
 
 ### 4.2 消息队列（Message Queue）
 
-- 由固定数量的**消息块**组成，每块存固定长度数据。
+- 由固定数量的**消息块**组成，每块存固定长度数据（`msg_size`）。
 - 维护两个独立等待链表：`Send List`（等写入）和 `Receive List`（等读取）。
-- 写操作：写入**队尾**；读操作：从**队首**读取。
+- 写操作：写入**队尾**；读操作：从**队首**读取。`rt_mq_urgent()` 可把消息插到**队首**（优先被取走）。
 - 多线程竞争时支持 **FIFO 或 PRIO** 策略。
 - 唤醒机制：写入时唤醒 `Receive List` 队首线程；读出时唤醒 `Send List` 队首线程。
+- **核心 API**
+
+  ```c
+  rt_mq_t rt_mq_create(const char *name, rt_size_t msg_size, rt_size_t max_msgs, rt_uint8_t flag);
+  /* msg_size: 单条消息字节数；max_msgs: 队列可容纳的消息条数 */
+
+  rt_err_t rt_mq_send(rt_mq_t mq, const void *buffer, rt_size_t size);          /* 写入队尾，size <= msg_size */
+  rt_err_t rt_mq_send_wait(rt_mq_t mq, const void *buffer, rt_size_t size, rt_int32_t timeout);
+  rt_err_t rt_mq_urgent(rt_mq_t mq, const void *buffer, rt_size_t size);        /* 插到队首 */
+  rt_err_t rt_mq_recv(rt_mq_t mq, void *buffer, rt_size_t size, rt_int32_t timeout); /* 从队首读取 */
+  ```
+
+### 4.3 邮箱 vs 消息队列：何时用哪个
+
+| 维度 | 邮箱 Mailbox | 消息队列 Message Queue |
+| :-- | :-- | :-- |
+| 数据单元 | 固定 4 字节（`unsigned long`，可存指针 / 小整数 / 标志） | 可配置大小（创建时 `msg_size`），适合多字节 / 结构体 |
+| 底层结构 | 环形缓冲区存 `value` | 多个固定大小消息块 |
+| 典型用途 | 事件通知、传递句柄 / 地址 / 计数 | 传感器数据帧、命令包、变长数据 |
+| 容量含义 | `rt_mb_create` 的 `size`（邮件封数） | `rt_mq_create` 的 `max_msgs`（消息条数） |
+
+> 经验法则：只传一个"信号 + 一个指针/编号"用邮箱最省事；要传一段连续数据或多字节结构体，用消息队列。
 
 ---
 
@@ -173,9 +204,28 @@
 - `RT_WAITING_NO` → 非阻塞立即返回
 - `N` → 等待 N 个 tick
 
+**ISR（中断上下文）使用限制**
+
+> 中断服务程序里**只能用"非阻塞的发送 / 释放"类接口**（接收方在普通线程里等）；任何会挂起等待的"接收 / 获取"接口都**不能**在 ISR 中调用。
+
+| 机制 | ISR 内可 send / release？ | ISR 内可 recv / take？ | 说明 |
+| :-- | :-- | :-- | :-- |
+| 信号量 | 可以（`rt_sem_release`） | 不可以（`rt_sem_take` 会阻塞） | release 无等待，可用 |
+| 互斥量 | 完全不能 | 完全不能 | 互斥量依赖线程优先级继承，ISR 无线程上下文 |
+| 事件集 | 可以（`rt_event_send`） | 不可以（`rt_event_recv` 会阻塞） | |
+| 邮箱 | 可以（`rt_mb_send`，可带超时） | 不可以（`rt_mb_recv` 会阻塞） | |
+| 消息队列 | 可以（`rt_mq_send`，可带超时） | 不可以（`rt_mq_recv` 会阻塞） | |
+
+**对象销毁（delete / detach）**
+
+- **动态创建**（`*_create`）配 `rt_xxx_delete`：释放内核对象并回收其占用的内存。
+- **静态初始化**（`*_init`）配 `rt_xxx_detach`：仅把对象从内核脱离，**不**释放静态内存（内存由调用者管理）。
+- 对应 API：`rt_sem_delete` / `rt_mutex_delete` / `rt_event_delete` / `rt_mb_delete` / `rt_mq_delete`（以及同名 `_detach` 版本，如 `rt_sem_detach`）。
+
 **易错点**
 
 1. 信号量可由**任何线程**释放，互斥量只能由**持有线程**释放。
 2. 互斥量支持**递归获取**，信号量不支持（递归获取会死锁）。
-3. 信号量可在**中断中释放**，互斥量**不能**。
+3. 信号量可在**中断中释放**，互斥量**不能**（ISR 中完全不可用互斥量）。
 4. 全局变量**不能**直接用于 IPC——无法解决竞态条件。
+5. **多把互斥量必须按统一顺序加锁**，否则易出现死锁（例如线程 1 持有 A 等 B、线程 2 持有 B 等 A，互相等待）。
