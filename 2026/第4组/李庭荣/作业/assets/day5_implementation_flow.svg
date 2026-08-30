@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700">
+  <rect width="1200" height="700" fill="#f7f9fc"/>
+  <text x="60" y="58" font-family="Arial, sans-serif" font-size="30" font-weight="700" fill="#172033">RSOC26 Day5 implementation flow</text>
+  <text x="60" y="92" font-family="Arial, sans-serif" font-size="17" fill="#506078">AHT10 + RW007 + MQTT + FAL/SFUD + font partition</text>
+
+  <rect x="60" y="145" width="270" height="145" rx="10" fill="#e8f1ff" stroke="#3c78d8" stroke-width="3"/>
+  <text x="85" y="182" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#1c4587">AHT10 sensor</text>
+  <text x="85" y="215" font-family="Consolas, monospace" font-size="17" fill="#26364d">i2c3</text>
+  <text x="85" y="245" font-family="Consolas, monospace" font-size="17" fill="#26364d">aht10_read_current()</text>
+  <text x="85" y="275" font-family="Arial, sans-serif" font-size="16" fill="#506078">2000 ms sample period</text>
+
+  <rect x="465" y="145" width="270" height="145" rx="10" fill="#e9f7ef" stroke="#34a853" stroke-width="3"/>
+  <text x="490" y="182" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#196b35">Paho MQTT</text>
+  <text x="490" y="215" font-family="Consolas, monospace" font-size="17" fill="#26364d">broker.emqx.io:1883</text>
+  <text x="490" y="245" font-family="Consolas, monospace" font-size="17" fill="#26364d">rtt/20260821/test</text>
+  <text x="490" y="275" font-family="Arial, sans-serif" font-size="16" fill="#506078">JSON + Count publish</text>
+
+  <rect x="870" y="145" width="270" height="145" rx="10" fill="#fff2e8" stroke="#e69138" stroke-width="3"/>
+  <text x="895" y="182" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#9a4d00">font partition</text>
+  <text x="895" y="215" font-family="Consolas, monospace" font-size="17" fill="#26364d">FAL block device: font</text>
+  <text x="895" y="245" font-family="Consolas, monospace" font-size="17" fill="#26364d">mount: elm -> /fal</text>
+  <text x="895" y="275" font-family="Consolas, monospace" font-size="17" fill="#26364d">/fal/Data.txt</text>
+
+  <path d="M330 218 H465" stroke="#68758a" stroke-width="4" marker-end="url(#arrow)"/>
+  <path d="M735 218 H870" stroke="#68758a" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <rect x="60" y="385" width="475" height="190" rx="10" fill="#ffffff" stroke="#9aa8bc" stroke-width="2"/>
+  <text x="85" y="423" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#172033">Cloud downlink</text>
+  <text x="85" y="463" font-family="Consolas, monospace" font-size="18" fill="#26364d">payload == "toggle"</text>
+  <text x="85" y="501" font-family="Consolas, monospace" font-size="18" fill="#26364d">rt_pin_write(PF12, !rt_pin_read(PF12))</text>
+  <text x="85" y="539" font-family="Arial, sans-serif" font-size="17" fill="#506078">MQTT callback -> LED_R output changes</text>
+
+  <rect x="665" y="385" width="475" height="190" rx="10" fill="#ffffff" stroke="#9aa8bc" stroke-width="2"/>
+  <text x="690" y="423" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#172033">Board verification commands</text>
+  <text x="690" y="463" font-family="Consolas, monospace" font-size="18" fill="#26364d">mount</text>
+  <text x="690" y="495" font-family="Consolas, monospace" font-size="18" fill="#26364d">ls /fal</text>
+  <text x="690" y="527" font-family="Consolas, monospace" font-size="18" fill="#26364d">cat /fal/Data.txt</text>
+  <text x="690" y="559" font-family="Consolas, monospace" font-size="18" fill="#26364d">pin read PF12</text>
+
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#68758a"/>
+    </marker>
+  </defs>
+</svg>

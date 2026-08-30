@@ -1,0 +1,11 @@
+ \ | /
+- RT -     Thread Operating System
+ / | \     5.2.2 build Aug 19 2026 23:29:01
+ 2006 - 2024 Copyright by RT-Thread team
+msh >startup_demo
+msh >network ready
+sensor ready
+wait modules timeout, net, sensor, storage is not ready
+storage ready
+all modules are ready
+business task started

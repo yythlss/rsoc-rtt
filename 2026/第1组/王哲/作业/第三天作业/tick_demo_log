@@ -1,0 +1,62 @@
+使用互斥锁之前
+没有出现竞态因为串口的底层驱动里是带有互斥的刚好这样子
+
+ \ | /
+- RT -     Thread Operating System
+ / | \     5.2.2 build Aug 19 2026 19:36:03
+ 2006 - 2024 Copyright by RT-Thread team
+msh >ticket_demo
+msh >window_B sold ticket 20
+window_A sold ticket 19
+window_B sold ticket 18
+window_A sold ticket 17
+window_B sold ticket 16
+window_A sold ticket 15
+window_A sold ticket 14
+window_B sold ticket 13
+window_B sold ticket 12
+window_A sold ticket 11
+window_B sold ticket 10
+window_A sold ticket 9
+window_B sold ticket 8
+window_A sold ticket 7
+window_B sold ticket 6
+window_A sold ticket 5
+window_B sold ticket 4
+window_A sold ticket 3
+window_B sold ticket 2
+window_B sold ticket 1
+all tickets sold
+remaining tickets: 0
+
+
+
+
+使用互斥锁之后
+ \ | /
+- RT -     Thread Operating System
+ / | \     5.2.2 build Aug 19 2026 19:36:03
+ 2006 - 2024 Copyright by RT-Thread team
+msh >ticket_demo
+msh >window_B sold ticket 20
+window_A sold ticket 19
+window_B sold ticket 18
+window_A sold ticket 17
+window_B sold ticket 16
+window_A sold ticket 15
+window_B sold ticket 14
+window_A sold ticket 13
+window_B sold ticket 12
+window_A sold ticket 11
+window_B sold ticket 10
+window_A sold ticket 9
+window_B sold ticket 8
+window_A sold ticket 7
+window_B sold ticket 6
+window_A sold ticket 5
+window_B sold ticket 4
+window_A sold ticket 3
+window_B sold ticket 2
+window_A sold ticket 1
+all tickets sold
+remaining tickets: 0

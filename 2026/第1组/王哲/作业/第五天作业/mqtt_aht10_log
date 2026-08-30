@@ -1,0 +1,124 @@
+======================================================================
+ spark_demo 串口关键日志（AHT10 + RW007 WiFi + kawaii-mqtt + 邮箱）
+ 实验日期：2026-08-23   （重复刷屏的采样行已省略，保留代表性片段）
+======================================================================
+
+【1】系统启动：I2C 总线注册 / lwIP / SAL / RW007
+----------------------------------------------------------------------
+ \ | /
+- RT -     Thread Operating System
+ / | \     4.1.1 build Aug 23 2026 17:59:33
+ 2006 - 2022 Copyright by RT-Thread team
+
+[I/I2C] I2C bus [i2c3] registered
+lwIP-2.0.3 initialized!
+[I/sal.skt] Socket Abstraction Layer initialize success.
+[E/[RW007]] The wifi Stage 1 status 0 0 0 1
+[I/WLAN.dev] wlan init success
+[I/WLAN.lwip] eth device init ok name:w0
+[I/WLAN.dev] wlan init success
+[I/WLAN.lwip] eth device init ok name:w1
+
+rw007  sn: [rw007a8a355defc584afaa345]
+rw007 ver: [RW007_2.1.0-c7747420-52]
+
+----------------------------------------------------------------------
+【2】%f 未开启 rt_vsprintf_full 时的现象（字面输出）
+----------------------------------------------------------------------
+msh >ath10_entery
+[D/ath10_entery] temp = %f
+[D/ath10_entery] humid = %f
+
+【2.1】开启 rt_vsprintf_full 后 %f 正常
+----------------------------------------------------------------------
+msh >ath10_entery
+temp = 25.843239
+humid = 80.388451
+
+----------------------------------------------------------------------
+【3】未导出的命令：ath10_entery（线程名非命令名）
+----------------------------------------------------------------------
+msh >ath10_entery
+ath10_entery: command not found.
+
+（help 列表中可见的命令只有：）
+msh >help ...
+ath10_init       - ath10_init
+
+----------------------------------------------------------------------
+【4】AHT10 采集：ath10_init 之后每秒一组
+----------------------------------------------------------------------
+msh >ath10_init
+msh >temp = 24.98
+humid = 80.40%
+temp = 24.41
+humid = 80.12%
+temp = 24.46℃
+humid = 80.10%
+...（中间大量同格式输出省略）...
+temp = 26.78℃
+humid = 75.40%
+
+----------------------------------------------------------------------
+【5】pin 命令：引脚编号查询（对应 RW007 INT_BUSY_PIN=107）
+----------------------------------------------------------------------
+msh >pin num pG11
+pG11 : 107
+
+----------------------------------------------------------------------
+【6】WiFi：扫描 / 加入 / 获取 IP
+----------------------------------------------------------------------
+msh >wifi scan
+             SSID                      MAC            security    rssi chn Mbps
+------------------------------- -----------------  -------------- ---- --- ----
+Xiaomi_zhe                      9e:97:fa:c3:5f:9c  WPA2_AES_PSK   -35   11    0
+
+msh >wifi join Xiaomi_zhe 995511qq
+[I/WLAN.mgnt] wifi connect failed!          <- 偶发失败，重试
+
+msh >wifi join Xiaomi_zhe 995511qq
+[I/WLAN.mgnt] wifi connect success ssid:Xiaomi_zhe
+msh >[I/WLAN.lwip] Got IP address : 10.163.153.128
+
+----------------------------------------------------------------------
+【7】网络验证：ping 外网（DNS 解析 + 网关连通）
+----------------------------------------------------------------------
+msh >ping baidu.com
+60 bytes from 111.63.65.247 icmp_seq=0 ttl=47 time=137 ms
+60 bytes from 111.63.65.247 icmp_seq=1 ttl=47 time=105 ms
+ping: from 111.63.65.247 icmp_seq=2 timeout
+ping: from 111.63.65.247 icmp_seq=3 timeout
+
+----------------------------------------------------------------------
+【8】kawaii-mqtt：软件包自测命令 ka_mqtt 连接 Broker（EMQX）
+----------------------------------------------------------------------
+msh >ka_mqtt
+msh >
+[I] >> The ID of the Kawaii client is: rtthread001
+[I] >> ../packages/kawaii-mqtt-latest/mqttclient/mqttclient.c:991 mqtt_connect_with_results()... mqtt connect success...
+
+----------------------------------------------------------------------
+【9】MQTTX -> 板卡：订阅 rtt-sub112 收到消息
+----------------------------------------------------------------------
+[I] >> -----------------------------------------------------------------------------------
+[I] >> ../packages/kawaii-mqtt-latest/test/test.c:41 sub_topic_handle1()...
+topic: rtt-sub112
+message:{
+  "msg": "hello"
+}
+[I] >> -----------------------------------------------------------------------------------
+
+----------------------------------------------------------------------
+【10】app_init：线程组合启动，邮箱溢出 drop（已正确释放内存）
+----------------------------------------------------------------------
+msh >app_init
+msh >[E/ath10_entery] mailbox full, drop
+[E/ath10_entery] mailbox full, drop
+
+[I] >> The ID of the Kawaii client is: rtthread001
+[I] >> ../packages/kawaii-mqtt-latest/mqttclient/mqttclient.c:991 mqtt_connect_with_results()... mqtt connect success...
+
+[E/ath10_entery] mailbox full, drop
+[E/ath10_entery] mailbox full, drop
+...（持续重复，约 1 条/秒，原因：MQTT 线程启动先 delay 等网络，
+     消费慢于 1s/条 的生产速率，20 槽邮箱积压填满）
